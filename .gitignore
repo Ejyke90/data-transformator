@@ -1,0 +1,22 @@
+### Ignore build outputs and IDE / Gradle caches
+# Root build output
+/build/
+
+# Gradle caches and wrapper outputs
+/.gradle/
+
+# Ignore per-project build folders
+/**/build/
+
+# IntelliJ / VSCode
+.idea/
+.vscode/
+
+# OS files
+.DS_Store
+
+# Gradle wrapper jar
+/gradle/wrapper/gradle-wrapper.jar
+
+# Generated pacs files and outputs (safe to ignore build outputs)
+/build/outputs/
