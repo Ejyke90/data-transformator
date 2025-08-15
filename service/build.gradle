@@ -1,5 +1,7 @@
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '3.2.2'
+    id 'io.spring.dependency-management' version '1.1.0'
 }
 
 group = 'org.translator'
@@ -11,12 +13,27 @@ repositories {
 
 dependencies {
     implementation project(':mapper-core')
+    implementation('org.springframework.boot:spring-boot-starter-web') {
+        // avoid bringing an alternate JAXB implementation that conflicts with our explicit runtime
+        exclude group: 'org.glassfish.jaxb', module: 'jaxb-runtime'
+    }
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:3.0.1'
-    implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
+    implementation('org.glassfish.jaxb:jaxb-runtime:3.0.2') {
+        // prefer the version we declare explicitly
+        exclude group: 'jakarta.xml.bind', module: 'jakarta.xml.bind-api'
+    }
+    // Model dependency required for direct use of Prowide ISO20022 classes in the service
+    implementation 'com.prowidesoftware:pw-iso20022:SRU2024-10.2.7'
 
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
 }
 
 test {
     useJUnitPlatform()
+}
+
+// Prevent bootJar failure caused by duplicate transitive JAXB artifacts
+bootJar {
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 }

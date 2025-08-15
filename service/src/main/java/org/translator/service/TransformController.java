@@ -1,0 +1,62 @@
+package org.translator.service;
+
+import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
+import com.prowidesoftware.swift.model.mx.dic.Pacs00900101;
+import org.translator.mapper.Pacs008ToPacs009Mapper;
+
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBElement;
+import jakarta.xml.bind.Marshaller;
+import jakarta.xml.bind.Unmarshaller;
+
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import javax.xml.namespace.QName;
+
+@RestController
+@RequestMapping("/transform-payment")
+public class TransformController {
+
+    @PostMapping(produces = MediaType.APPLICATION_XML_VALUE)
+    public ResponseEntity<String> transform(HttpEntity<String> requestEntity) {
+        String xml = null;
+        if (requestEntity != null) {
+            xml = requestEntity.getBody();
+        }
+
+        if (xml == null || xml.isBlank()) {
+            return ResponseEntity.badRequest().body("Missing request body");
+        }
+        try {
+            JAXBContext jaxbCtx = JAXBContext.newInstance(Pacs00800101.class);
+            Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
+            // use typed unmarshal to handle the outer Document element (returns JAXBElement)
+            javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xml));
+            jakarta.xml.bind.JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
+            Pacs00800101 src = jel.getValue();
+
+            Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+
+            JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
+            Marshaller marshaller = outCtx.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            QName rootName = new QName("urn:iso:std:iso:20022:tech:xsd:pacs.009.001.01", "Document");
+            JAXBElement<Pacs00900101> root = new JAXBElement<>(rootName, Pacs00900101.class, mapped);
+
+            java.io.StringWriter sw = new java.io.StringWriter();
+            marshaller.marshal(root, sw);
+            String outXml = sw.toString();
+
+            return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(outXml);
+        } catch (jakarta.xml.bind.JAXBException jb) {
+            return ResponseEntity.badRequest().body("Invalid XML: " + jb.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(500).body("Internal error: " + e.getMessage());
+        }
+    }
+}
