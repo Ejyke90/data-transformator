@@ -84,6 +84,9 @@ public class TransformController {
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(outXml);
         } catch (jakarta.xml.bind.JAXBException jb) {
             return ResponseEntity.badRequest().body("Invalid XML: " + jb.getMessage());
+        } catch (UnsupportedOperationException uo) {
+            // Dispatcher doesn't support requested target type -> client error
+            return ResponseEntity.badRequest().body("Unsupported target message type: " + uo.getMessage());
         } catch (Exception e) {
             return ResponseEntity.status(500).body("Internal error: " + e.getMessage());
         }

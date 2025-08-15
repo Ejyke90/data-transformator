@@ -2,6 +2,7 @@ package org.translator.service;
 
 import org.springframework.stereotype.Component;
 import org.translator.mapper.MessageMappingDispatcher;
+import org.translator.mapper.MapperAdapter;
 import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
 import com.prowidesoftware.swift.model.mx.dic.Pacs00900101;
 import org.translator.mapper.Pacs008ToPacs009Mapper;
@@ -17,11 +18,24 @@ import javax.xml.namespace.QName;
  */
 @Component
 public class DefaultMessageMappingDispatcher implements MessageMappingDispatcher {
+    private final MappingRegistry registry;
+
+    public DefaultMessageMappingDispatcher(MappingRegistry registry) {
+        this.registry = registry;
+    }
 
     @Override
     public String mapXml(String sourceXml, String targetMessageType) throws Exception {
-        // For now support only pacs.009 target type and expect pacs.008 source
-        if (targetMessageType == null || !targetMessageType.toLowerCase().contains("pacs.009")) {
+    // Normalize and detect types
+    String normalizedTarget = org.translator.mapper.MessageTypeUtils.normalize(targetMessageType);
+    String sourceType = org.translator.mapper.MessageTypeUtils.detectSourceTypeFromXml(sourceXml);
+    MapperAdapter adapter = registry.findAdapter(sourceType, normalizedTarget);
+        if (adapter != null) {
+            return adapter.map(sourceXml);
+        }
+
+        // Fallback: legacy behavior only supporting pacs.009 when no adapter registered
+        if (normalizedTarget == null || !normalizedTarget.equals("pacs.009")) {
             throw new UnsupportedOperationException("Only pacs.009 target is supported by this dispatcher");
         }
 
@@ -43,4 +57,6 @@ public class DefaultMessageMappingDispatcher implements MessageMappingDispatcher
         marshaller.marshal(root, sw);
         return sw.toString();
     }
+
+    // source detection is handled by MessageTypeUtils
 }
