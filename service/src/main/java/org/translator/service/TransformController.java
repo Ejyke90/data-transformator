@@ -36,7 +36,7 @@ public class TransformController {
 
     @PostMapping(produces = MediaType.APPLICATION_XML_VALUE)
     public ResponseEntity<String> transform(HttpEntity<String> requestEntity,
-                                            @RequestHeader(value = "X-Target-Message-Type", required = false) String targetMessageType) {
+            @RequestHeader(value = "X-Target-Message-Type", required = false) String targetMessageType) {
         String xml = null;
         if (requestEntity != null) {
             xml = requestEntity.getBody();
@@ -53,8 +53,10 @@ public class TransformController {
         try {
             JAXBContext jaxbCtx = JAXBContext.newInstance(Pacs00800101.class);
             Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-            // use typed unmarshal to handle the outer Document element (returns JAXBElement)
-            javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xml));
+            // use typed unmarshal to handle the outer Document element (returns
+            // JAXBElement)
+            javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(
+                    new java.io.StringReader(xml));
             JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
             Pacs00800101 src = jel.getValue();
 

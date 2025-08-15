@@ -42,7 +42,10 @@ public class PrintMappedFieldsTest {
         // debtor account IBAN
         com.prowidesoftware.swift.model.mx.dic.CashAccount7 acct = new com.prowidesoftware.swift.model.mx.dic.CashAccount7();
         com.prowidesoftware.swift.model.mx.dic.AccountIdentification3Choice aid = new com.prowidesoftware.swift.model.mx.dic.AccountIdentification3Choice();
-        try { aid.setIBAN("NL91ABNA0417164300"); } catch (Exception ignore) {}
+        try {
+            aid.setIBAN("NL91ABNA0417164300");
+        } catch (Exception ignore) {
+        }
         acct.setId(aid);
         tx.setDbtrAcct(acct);
 
@@ -54,19 +57,27 @@ public class PrintMappedFieldsTest {
         printObject("Document", mapped, new java.util.IdentityHashMap<>());
     }
 
-    private void printObject(String path, Object obj, java.util.IdentityHashMap<Object,Boolean> seen) {
-        if (obj == null) { System.out.println(path + " = null"); return; }
-        if (seen.containsKey(obj)) { System.out.println(path + " = (seen)"); return; }
+    private void printObject(String path, Object obj, java.util.IdentityHashMap<Object, Boolean> seen) {
+        if (obj == null) {
+            System.out.println(path + " = null");
+            return;
+        }
+        if (seen.containsKey(obj)) {
+            System.out.println(path + " = (seen)");
+            return;
+        }
         seen.put(obj, true);
         Class<?> cls = obj.getClass();
-        if (cls.isPrimitive() || obj instanceof String || obj instanceof Number || obj instanceof Boolean || obj instanceof java.time.temporal.Temporal) {
+        if (cls.isPrimitive() || obj instanceof String || obj instanceof Number || obj instanceof Boolean
+                || obj instanceof java.time.temporal.Temporal) {
             System.out.println(path + " = " + obj.toString());
             return;
         }
         if (obj instanceof java.util.List) {
             java.util.List<?> l = (java.util.List<?>) obj;
             System.out.println(path + " = List(size=" + l.size() + ")");
-            for (int i = 0; i < l.size(); i++) printObject(path + "[" + i + "]", l.get(i), seen);
+            for (int i = 0; i < l.size(); i++)
+                printObject(path + "[" + i + "]", l.get(i), seen);
             return;
         }
         java.lang.reflect.Method[] methods = cls.getMethods();

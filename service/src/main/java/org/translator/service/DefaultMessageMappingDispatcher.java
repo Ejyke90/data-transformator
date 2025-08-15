@@ -26,10 +26,10 @@ public class DefaultMessageMappingDispatcher implements MessageMappingDispatcher
 
     @Override
     public String mapXml(String sourceXml, String targetMessageType) throws Exception {
-    // Normalize and detect types
-    String normalizedTarget = org.translator.mapper.MessageTypeUtils.normalize(targetMessageType);
-    String sourceType = org.translator.mapper.MessageTypeUtils.detectSourceTypeFromXml(sourceXml);
-    MapperAdapter adapter = registry.findAdapter(sourceType, normalizedTarget);
+        // Normalize and detect types
+        String normalizedTarget = org.translator.mapper.MessageTypeUtils.normalize(targetMessageType);
+        String sourceType = org.translator.mapper.MessageTypeUtils.detectSourceTypeFromXml(sourceXml);
+        MapperAdapter adapter = registry.findAdapter(sourceType, normalizedTarget);
         if (adapter != null) {
             return adapter.map(sourceXml);
         }
@@ -41,7 +41,8 @@ public class DefaultMessageMappingDispatcher implements MessageMappingDispatcher
 
         JAXBContext jaxbCtx = JAXBContext.newInstance(Pacs00800101.class);
         Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-        javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(new java.io.StringReader(sourceXml));
+        javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(
+                new java.io.StringReader(sourceXml));
         JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
         Pacs00800101 src = jel.getValue();
 

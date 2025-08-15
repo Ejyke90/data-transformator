@@ -25,7 +25,8 @@ public class Pacs008ToPacs009Adapter implements MapperAdapter {
     public String map(String sourceXml) throws Exception {
         JAXBContext jaxbCtx = JAXBContext.newInstance(Pacs00800101.class);
         Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
-        javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(new java.io.StringReader(sourceXml));
+        javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(
+                new java.io.StringReader(sourceXml));
         JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
         Pacs00800101 src = jel.getValue();
 

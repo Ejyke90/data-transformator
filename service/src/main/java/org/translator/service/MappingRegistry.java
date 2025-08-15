@@ -27,7 +27,8 @@ public class MappingRegistry {
     }
 
     /**
-     * Return a map of sourceType -> list of targetTypes supported by registered adapters.
+     * Return a map of sourceType -> list of targetTypes supported by registered
+     * adapters.
      * Detection is best-effort against a small known set of message types.
      */
     public Map<String, List<String>> getCapabilities() {
@@ -41,7 +42,8 @@ public class MappingRegistry {
                 for (String t : known) {
                     if (a.supports(s, t)) {
                         List<String> list = out.get(s);
-                        if (!list.contains(t)) list.add(t);
+                        if (!list.contains(t))
+                            list.add(t);
                     }
                 }
             }
