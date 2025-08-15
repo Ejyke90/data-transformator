@@ -83,3 +83,85 @@ Recommended next steps (short list)
 Contact & contribution
 Raise issues or PRs in this repository for additional mapping rules or sample messages
 to use as canonical test fixtures.
+
+Additional developer notes — dispatcher & registry (how the translator works)
+-----------------------------------------------------------------------
+
+Library vs REST flow
+- Library (embedding): import the `mapper-core` JAR and call mappers directly. For
+  example, use the generated `Pacs008ToPacs009Mapper.INSTANCE.map(src)` to map
+  in-memory Prowide model objects. This is the most efficient integration for
+  batch jobs or host applications.
+- REST endpoint (service): POST raw XML to `/transform-payment`. The controller
+  accepts an optional HTTP header `X-Target-Message-Type` (e.g. `pacs.009`);
+  when provided the controller delegates to the dispatcher which routes mapping
+  requests using a registry of adapters.
+
+Dispatcher / Registry flow (implemented)
+- `TransformController` receives the XML payload and an optional header
+  `X-Target-Message-Type`.
+- If the header is present the controller delegates to `MessageMappingDispatcher`.
+- `DefaultMessageMappingDispatcher` normalizes the requested target type and
+  performs best-effort source-type detection (XML root namespace/name) using
+  `MessageTypeUtils`.
+- `MappingRegistry` holds discovered `MapperAdapter` Spring beans. Each
+  `MapperAdapter` advertises which `(sourceType,targetType)` pairs it supports
+  via `supports(String sourceType, String targetType)`.
+- The registry finds a suitable adapter and the dispatcher invokes its `map(String sourceXml)`
+  method. The adapter is responsible for unmarshalling the source XML, calling
+  the concrete MapStruct mapper (or other logic), and returning marshalled
+  target XML.
+
+Why this design?
+- Separation of concerns: the controller stays thin (HTTP concerns), the dispatcher
+  focuses on routing, adapters encapsulate mapping logic and marshalling details.
+- Extensibility: add a new adapter bean (for example `Pacs008ToPacs002Adapter`) to
+  support new source/target pairs without changing controller or dispatcher code.
+- Discoverability: adapters are simple Spring components and are auto-wired into
+  the registry so adding new mappers is low-friction.
+
+Usage examples (REST)
+- Default behaviour (no header): legacy behaviour is preserved — controller will
+  map pacs.008 -> pacs.009 using the original mapper.
+- Explicit target header (preferred):
+
+  curl -X POST http://localhost:8080/transform-payment \
+    -H "Content-Type: application/xml" \
+    -H "X-Target-Message-Type: pacs.009" \
+    --data-binary @sample_pacs008.xml
+
+  This instructs the service to normalize the header value and route to the
+  appropriate adapter (if registered).
+
+Scaling suggestions
+- Registry & discovery: keep using a registry but extend it to support priorities
+  and more flexible matching (namespaces, versions, message families).
+- Adapter lifecycle: consider adding health checks per adapter and a lightweight
+  capability endpoint (`GET /mapping-capabilities`) listing supported source/target
+  mappings for operational visibility.
+- Pluggable transformers: adopt an OSGi-like or plugin strategy for adapters if
+  you expect third-parties to contribute mappers.
+- Performance: cache JAXBContext and reuse marshallers/unmarshallers; measure
+  and add a thread-pooled endpoint for high throughput.
+- Testing: maintain a matrix of sample inputs and expected outputs. Automate
+  contract tests that run on each adapter and the REST wrapper.
+
+Files touched in this change
+- `mapper-core/src/main/java/org/translator/mapper/MessageTypeUtils.java` — normalization
+  and XML root-name detection utilities.
+- `mapper-core/src/main/java/org/translator/mapper/MapperAdapter.java` — adapter interface.
+- `service/src/main/java/org/translator/service/Pacs008ToPacs009Adapter.java` — adapter
+  wrapping existing mapper.
+- `service/src/main/java/org/translator/service/Pacs008ToPacs002Adapter.java` — stub adapter
+  that demonstrates how to plug new targets.
+- `service/src/main/java/org/translator/service/MappingRegistry.java` — registry of adapters.
+- `service/src/main/java/org/translator/service/DefaultMessageMappingDispatcher.java` — dispatcher
+  that uses the registry.
+
+Next engineering steps (suggested)
+1. Add a `GET /mapping-capabilities` endpoint returning the registry capabilities.
+2. Add adapter-level unit/integration tests and example fixtures for pacs.002 if
+   you plan to support it.
+3. Replace heuristic detection with full XML schema/version negotiation if you
+   require strict correctness between versions.
+
