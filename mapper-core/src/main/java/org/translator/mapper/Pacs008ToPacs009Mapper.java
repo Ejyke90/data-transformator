@@ -90,17 +90,81 @@ public interface Pacs008ToPacs009Mapper {
         try {
             java.lang.reflect.Method getStrd = null;
             try { getStrd = src.getClass().getMethod("getStrd"); } catch (NoSuchMethodException ns) { getStrd = null; }
-            if (getStrd != null) {
+                    if (getStrd != null) {
                 Object listObj = getStrd.invoke(src);
                 if (listObj instanceof java.util.List) {
                     @SuppressWarnings("unchecked") java.util.List<Object> list = (java.util.List<Object>) listObj;
+                    // if there are structured entries, prefer to extract typed fields conservatively
+                    boolean firstStructuredHandled = false;
                     for (Object strd : list) {
                         if (strd == null) continue;
+                        // attempt typed extraction once for the first structured element
+                        try {
+                            java.lang.reflect.Method getCdtrRef = null;
+                            try { getCdtrRef = strd.getClass().getMethod("getCdtrRefInf"); } catch (NoSuchMethodException ns2) { getCdtrRef = null; }
+                            if (getCdtrRef != null && !firstStructuredHandled) {
+                                Object cdtrRef = getCdtrRef.invoke(strd);
+                                if (cdtrRef != null) {
+                                    try { java.lang.reflect.Method set = tgt.getClass().getMethod("setCdtrRefInf", cdtrRef.getClass()); set.invoke(tgt, cdtrRef); } catch (NoSuchMethodException ns3) { try { java.lang.reflect.Method set2 = tgt.getClass().getMethod("setCdtrRefInf", Object.class); set2.invoke(tgt, cdtrRef); } catch (Exception ignore) {} } catch (Exception ignore) {}
+                                }
+                            }
+
+                            java.lang.reflect.Method getRfrdDocAmt = null;
+                            try { getRfrdDocAmt = strd.getClass().getMethod("getRfrdDocAmt"); } catch (NoSuchMethodException ns3) { getRfrdDocAmt = null; }
+                            if (getRfrdDocAmt != null && !firstStructuredHandled) {
+                                Object rAmt = getRfrdDocAmt.invoke(strd);
+                                if (rAmt != null) {
+                                    try { java.lang.reflect.Method set = tgt.getClass().getMethod("setRfrdDocAmt", rAmt.getClass()); set.invoke(tgt, rAmt); } catch (NoSuchMethodException ns3) { try { java.lang.reflect.Method set2 = tgt.getClass().getMethod("setRfrdDocAmt", Object.class); set2.invoke(tgt, rAmt); } catch (Exception ignore) {} } catch (Exception ignore) {}
+                                }
+                            }
+
+                            java.lang.reflect.Method getTaxRmt = null;
+                            try { getTaxRmt = strd.getClass().getMethod("getTaxRmt"); } catch (NoSuchMethodException ns4) { getTaxRmt = null; }
+                            if (getTaxRmt != null && !firstStructuredHandled) {
+                                Object tax = getTaxRmt.invoke(strd);
+                                if (tax != null) {
+                                    try { java.lang.reflect.Method set = tgt.getClass().getMethod("setTaxRmt", tax.getClass()); set.invoke(tgt, tax); } catch (NoSuchMethodException ns3) { try { java.lang.reflect.Method set2 = tgt.getClass().getMethod("setTaxRmt", Object.class); set2.invoke(tgt, tax); } catch (Exception ignore) {} } catch (Exception ignore) {}
+                                }
+                            }
+
+                            java.lang.reflect.Method getGrnshmt = null;
+                            try { getGrnshmt = strd.getClass().getMethod("getGrnshmtRmt"); } catch (NoSuchMethodException ns5) { getGrnshmt = null; }
+                            if (getGrnshmt != null && !firstStructuredHandled) {
+                                Object g = getGrnshmt.invoke(strd);
+                                if (g != null) {
+                                    try { java.lang.reflect.Method set = tgt.getClass().getMethod("setGrnshmtRmt", g.getClass()); set.invoke(tgt, g); } catch (NoSuchMethodException ns3) { try { java.lang.reflect.Method set2 = tgt.getClass().getMethod("setGrnshmtRmt", Object.class); set2.invoke(tgt, g); } catch (Exception ignore) {} } catch (Exception ignore) {}
+                                }
+                            }
+                            firstStructuredHandled = true;
+                        } catch (Exception e) {
+                            // ignore typed extraction failures and continue to addtlRmtInf handling
+                        }
+
+                        // copy any additional remittance info strings into target unstructured list
                         try {
                             java.lang.reflect.Method getAdd = null;
                             try { getAdd = strd.getClass().getMethod("getAddtlRmtInf"); } catch (NoSuchMethodException ns2) { getAdd = null; }
                             if (getAdd != null) {
                                 Object addList = getAdd.invoke(strd);
+                                if (addList == null) {
+                                    try {
+                                        java.lang.reflect.Method setAdd = null;
+                                        try { setAdd = strd.getClass().getMethod("setAddtlRmtInf", java.util.List.class); } catch (NoSuchMethodException ns3) { setAdd = null; }
+                                        if (setAdd != null) {
+                                            java.util.List<Object> newList = new java.util.ArrayList<>();
+                                            setAdd.invoke(strd, newList);
+                                            addList = newList;
+                                        } else {
+                                            try {
+                                                java.lang.reflect.Field f = strd.getClass().getDeclaredField("addtlRmtInf");
+                                                f.setAccessible(true);
+                                                java.util.List<Object> newList = new java.util.ArrayList<>();
+                                                f.set(strd, newList);
+                                                addList = newList;
+                                            } catch (Exception ex) { /* ignore */ }
+                                        }
+                                    } catch (Exception ex) { /* ignore */ }
+                                }
                                 if (addList instanceof java.util.List) {
                                     @SuppressWarnings("unchecked") java.util.List<Object> adds = (java.util.List<Object>) addList;
                                     for (Object a : adds) if (a != null) tgt.getUstrd().add(a.toString());

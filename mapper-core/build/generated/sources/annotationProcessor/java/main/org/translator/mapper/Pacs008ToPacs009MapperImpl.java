@@ -18,22 +18,22 @@ import javax.annotation.processing.Generated;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2025-08-15T04:17:35-0400",
+    date = "2025-08-15T10:48:20-0400",
     comments = "version: 1.6.3, compiler: IncrementalProcessingEnvironment from gradle-language-java-8.6.jar, environment: Java 21.0.8 (Eclipse Adoptium)"
 )
 public class Pacs008ToPacs009MapperImpl implements Pacs008ToPacs009Mapper {
 
     @Override
-    public Pacs00900101 map(Pacs00800101 src) {
-        if ( src == null ) {
+    public Pacs00900101 map(Pacs00800101 arg0) {
+        if ( arg0 == null ) {
             return null;
         }
 
         Pacs00900101 pacs00900101 = new Pacs00900101();
 
-        pacs00900101.setGrpHdr( map( src.getGrpHdr() ) );
+        pacs00900101.setGrpHdr( map( arg0.getGrpHdr() ) );
         if ( pacs00900101.getCdtTrfTxInf() != null ) {
-            List<CreditTransferTransactionInformation3> list = creditTransferTransactionInformation2ListToCreditTransferTransactionInformation3List( src.getCdtTrfTxInf() );
+            List<CreditTransferTransactionInformation3> list = creditTransferTransactionInformation2ListToCreditTransferTransactionInformation3List( arg0.getCdtTrfTxInf() );
             if ( list != null ) {
                 pacs00900101.getCdtTrfTxInf().addAll( list );
             }
@@ -43,81 +43,81 @@ public class Pacs008ToPacs009MapperImpl implements Pacs008ToPacs009Mapper {
     }
 
     @Override
-    public GroupHeader4 map(GroupHeader2 src) {
-        if ( src == null ) {
+    public GroupHeader4 map(GroupHeader2 arg0) {
+        if ( arg0 == null ) {
             return null;
         }
 
         GroupHeader4 groupHeader4 = new GroupHeader4();
 
-        groupHeader4.setMsgId( src.getMsgId() );
-        groupHeader4.setCreDtTm( src.getCreDtTm() );
-        groupHeader4.setNbOfTxs( src.getNbOfTxs() );
-        groupHeader4.setCtrlSum( src.getCtrlSum() );
-        groupHeader4.setTtlIntrBkSttlmAmt( src.getTtlIntrBkSttlmAmt() );
-        groupHeader4.setSttlmInf( src.getSttlmInf() );
-        groupHeader4.setInstgAgt( src.getInstgAgt() );
-        groupHeader4.setInstdAgt( src.getInstdAgt() );
-        groupHeader4.setIntrBkSttlmDt( src.getIntrBkSttlmDt() );
-        groupHeader4.setBtchBookg( src.isBtchBookg() );
-        groupHeader4.setPmtTpInf( paymentTypeInformation3ToPaymentTypeInformation5( src.getPmtTpInf() ) );
+        groupHeader4.setMsgId( arg0.getMsgId() );
+        groupHeader4.setCreDtTm( arg0.getCreDtTm() );
+        groupHeader4.setNbOfTxs( arg0.getNbOfTxs() );
+        groupHeader4.setCtrlSum( arg0.getCtrlSum() );
+        groupHeader4.setTtlIntrBkSttlmAmt( arg0.getTtlIntrBkSttlmAmt() );
+        groupHeader4.setSttlmInf( arg0.getSttlmInf() );
+        groupHeader4.setInstgAgt( arg0.getInstgAgt() );
+        groupHeader4.setInstdAgt( arg0.getInstdAgt() );
+        groupHeader4.setIntrBkSttlmDt( arg0.getIntrBkSttlmDt() );
+        groupHeader4.setBtchBookg( arg0.isBtchBookg() );
+        groupHeader4.setPmtTpInf( paymentTypeInformation3ToPaymentTypeInformation5( arg0.getPmtTpInf() ) );
 
         return groupHeader4;
     }
 
     @Override
-    public CreditTransferTransactionInformation3 map(CreditTransferTransactionInformation2 src) {
-        if ( src == null ) {
+    public CreditTransferTransactionInformation3 map(CreditTransferTransactionInformation2 arg0) {
+        if ( arg0 == null ) {
             return null;
         }
 
         CreditTransferTransactionInformation3 creditTransferTransactionInformation3 = new CreditTransferTransactionInformation3();
 
-        creditTransferTransactionInformation3.setPmtId( paymentIdentification2ToPaymentIdentification2( src.getPmtId() ) );
-        creditTransferTransactionInformation3.setIntrBkSttlmAmt( src.getIntrBkSttlmAmt() );
-        creditTransferTransactionInformation3.setRmtInf( remittanceInformation1ToUstrd( src.getRmtInf() ) );
-        creditTransferTransactionInformation3.setCdtrAgt( src.getCdtrAgt() );
-        creditTransferTransactionInformation3.setDbtrAgt( src.getDbtrAgt() );
-        creditTransferTransactionInformation3.setCdtrAcct( src.getCdtrAcct() );
-        creditTransferTransactionInformation3.setUltmtCdtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( src.getUltmtCdtr() ) );
-        creditTransferTransactionInformation3.setPrvsInstgAgt( src.getPrvsInstgAgt() );
-        creditTransferTransactionInformation3.setDbtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( src.getDbtr() ) );
-        creditTransferTransactionInformation3.setCdtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( src.getCdtr() ) );
-        creditTransferTransactionInformation3.setUltmtDbtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( src.getUltmtDbtr() ) );
-        creditTransferTransactionInformation3.setPmtTpInf( paymentTypeInformation3ToPaymentTypeInformation5( src.getPmtTpInf() ) );
-        creditTransferTransactionInformation3.setIntrBkSttlmDt( src.getIntrBkSttlmDt() );
-        creditTransferTransactionInformation3.setSttlmTmIndctn( src.getSttlmTmIndctn() );
-        creditTransferTransactionInformation3.setSttlmTmReq( src.getSttlmTmReq() );
-        creditTransferTransactionInformation3.setPrvsInstgAgtAcct( src.getPrvsInstgAgtAcct() );
-        creditTransferTransactionInformation3.setInstgAgt( src.getInstgAgt() );
-        creditTransferTransactionInformation3.setInstdAgt( src.getInstdAgt() );
-        creditTransferTransactionInformation3.setIntrmyAgt1( src.getIntrmyAgt1() );
-        creditTransferTransactionInformation3.setIntrmyAgt1Acct( src.getIntrmyAgt1Acct() );
-        creditTransferTransactionInformation3.setIntrmyAgt2( src.getIntrmyAgt2() );
-        creditTransferTransactionInformation3.setIntrmyAgt2Acct( src.getIntrmyAgt2Acct() );
-        creditTransferTransactionInformation3.setIntrmyAgt3( src.getIntrmyAgt3() );
-        creditTransferTransactionInformation3.setIntrmyAgt3Acct( src.getIntrmyAgt3Acct() );
-        creditTransferTransactionInformation3.setDbtrAcct( src.getDbtrAcct() );
-        creditTransferTransactionInformation3.setDbtrAgtAcct( src.getDbtrAgtAcct() );
-        creditTransferTransactionInformation3.setCdtrAgtAcct( src.getCdtrAgtAcct() );
+        creditTransferTransactionInformation3.setPmtId( paymentIdentification2ToPaymentIdentification2( arg0.getPmtId() ) );
+        creditTransferTransactionInformation3.setIntrBkSttlmAmt( arg0.getIntrBkSttlmAmt() );
+        creditTransferTransactionInformation3.setRmtInf( remittanceInformation1ToUstrd( arg0.getRmtInf() ) );
+        creditTransferTransactionInformation3.setCdtrAgt( arg0.getCdtrAgt() );
+        creditTransferTransactionInformation3.setDbtrAgt( arg0.getDbtrAgt() );
+        creditTransferTransactionInformation3.setCdtrAcct( arg0.getCdtrAcct() );
+        creditTransferTransactionInformation3.setUltmtCdtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( arg0.getUltmtCdtr() ) );
+        creditTransferTransactionInformation3.setPrvsInstgAgt( arg0.getPrvsInstgAgt() );
+        creditTransferTransactionInformation3.setDbtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( arg0.getDbtr() ) );
+        creditTransferTransactionInformation3.setCdtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( arg0.getCdtr() ) );
+        creditTransferTransactionInformation3.setUltmtDbtr( partyIdentification8ToBranchAndFinancialInstitutionIdentification3( arg0.getUltmtDbtr() ) );
+        creditTransferTransactionInformation3.setPmtTpInf( paymentTypeInformation3ToPaymentTypeInformation5( arg0.getPmtTpInf() ) );
+        creditTransferTransactionInformation3.setIntrBkSttlmDt( arg0.getIntrBkSttlmDt() );
+        creditTransferTransactionInformation3.setSttlmTmIndctn( arg0.getSttlmTmIndctn() );
+        creditTransferTransactionInformation3.setSttlmTmReq( arg0.getSttlmTmReq() );
+        creditTransferTransactionInformation3.setPrvsInstgAgtAcct( arg0.getPrvsInstgAgtAcct() );
+        creditTransferTransactionInformation3.setInstgAgt( arg0.getInstgAgt() );
+        creditTransferTransactionInformation3.setInstdAgt( arg0.getInstdAgt() );
+        creditTransferTransactionInformation3.setIntrmyAgt1( arg0.getIntrmyAgt1() );
+        creditTransferTransactionInformation3.setIntrmyAgt1Acct( arg0.getIntrmyAgt1Acct() );
+        creditTransferTransactionInformation3.setIntrmyAgt2( arg0.getIntrmyAgt2() );
+        creditTransferTransactionInformation3.setIntrmyAgt2Acct( arg0.getIntrmyAgt2Acct() );
+        creditTransferTransactionInformation3.setIntrmyAgt3( arg0.getIntrmyAgt3() );
+        creditTransferTransactionInformation3.setIntrmyAgt3Acct( arg0.getIntrmyAgt3Acct() );
+        creditTransferTransactionInformation3.setDbtrAcct( arg0.getDbtrAcct() );
+        creditTransferTransactionInformation3.setDbtrAgtAcct( arg0.getDbtrAgtAcct() );
+        creditTransferTransactionInformation3.setCdtrAgtAcct( arg0.getCdtrAgtAcct() );
 
-        afterTransactionMap( src, creditTransferTransactionInformation3 );
+        afterTransactionMap( arg0, creditTransferTransactionInformation3 );
 
         return creditTransferTransactionInformation3;
     }
 
     @Override
-    public PaymentTypeInformation5 paymentTypeInformation3ToPaymentTypeInformation5(PaymentTypeInformation3 src) {
-        if ( src == null ) {
+    public PaymentTypeInformation5 paymentTypeInformation3ToPaymentTypeInformation5(PaymentTypeInformation3 arg0) {
+        if ( arg0 == null ) {
             return null;
         }
 
         PaymentTypeInformation5 paymentTypeInformation5 = new PaymentTypeInformation5();
 
-        paymentTypeInformation5.setInstrPrty( src.getInstrPrty() );
-        paymentTypeInformation5.setSvcLvl( serviceLevel2ChoiceToRestrictedProprietaryChoice( src.getSvcLvl() ) );
-        paymentTypeInformation5.setClrChanl( src.getClrChanl() );
-        paymentTypeInformation5.setLclInstrm( localInstrument1ChoiceToRestrictedProprietaryChoice( src.getLclInstrm() ) );
+        paymentTypeInformation5.setInstrPrty( arg0.getInstrPrty() );
+        paymentTypeInformation5.setSvcLvl( serviceLevel2ChoiceToRestrictedProprietaryChoice( arg0.getSvcLvl() ) );
+        paymentTypeInformation5.setClrChanl( arg0.getClrChanl() );
+        paymentTypeInformation5.setLclInstrm( localInstrument1ChoiceToRestrictedProprietaryChoice( arg0.getLclInstrm() ) );
 
         return paymentTypeInformation5;
     }

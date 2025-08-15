@@ -103,22 +103,9 @@ public class Runner {
                 try {
                     fin = mapped.getCdtTrfTxInf().get(0).getDbtr().getFinInstnId();
                 } catch (Exception e) { /* ignore */ }
-                if (fin != null) {
-                    System.out.println("--- FinInstnId class: " + fin.getClass().getName());
-                    for (java.lang.reflect.Method mm : fin.getClass().getMethods()) {
-                        if (mm.getName().toLowerCase().contains("prtry")) {
-                            System.out.println("method: " + mm + " returns " + mm.getReturnType().getName());
-                            try {
-                                Object v = mm.invoke(fin);
-                                if (v instanceof java.util.List) {
-                                    System.out.println("prtry-list size: " + ((java.util.List<?>) v).size());
-                                } else {
-                                    System.out.println("prtry-value: " + String.valueOf(v));
-                                }
-                            } catch (Exception ex) { System.out.println("invoke failed: " + ex); }
-                        }
+                    if (fin != null) {
+                        // diagnostic logging removed
                     }
-                }
             }
         } catch (Exception _e) { }
 
@@ -151,8 +138,7 @@ public class Runner {
             } catch (Exception _e) {
                 // fallback to raw
             }
-            System.out.println("--- Marshalled pacs009.xml (pretty):");
-            System.out.println(prettyOriginal);
+            // logging removed: prettyOriginal omitted
         } catch (Exception _e) { /* ignore logging errors */ }
 
         // Post-process marshalled XML: inject additional <PrtryId> elements under Dbtr/FinInstnId
@@ -214,17 +200,16 @@ public class Runner {
             java.io.StringWriter sw2 = new java.io.StringWriter();
             tr.transform(new javax.xml.transform.dom.DOMSource(doc), new javax.xml.transform.stream.StreamResult(sw2));
             String outXml = sw2.toString();
-            System.out.println("--- Post-processed pacs009.xml (pretty):");
-            System.out.println(outXml);
+            // logging removed: post-processed XML omitted
             try {
                 java.nio.file.Path outdir = java.nio.file.Paths.get("build/outputs");
                 java.nio.file.Files.createDirectories(outdir);
                 java.nio.file.Files.write(outdir.resolve("pacs009.xml"), outXml.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                System.out.println("Wrote build/outputs/pacs009.xml");
+                // logging removed: wrote output file
             } catch (Exception _w) { }
         } catch (Exception e) {
             // fallback to original output on any error
-            System.out.println(w.toString());
+            // logging removed: fallback output
         }
     }
 }
