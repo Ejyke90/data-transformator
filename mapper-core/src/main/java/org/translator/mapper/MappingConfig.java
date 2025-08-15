@@ -1,10 +1,2 @@
-package org.translator.mapper;
+// MappingConfig removed: Pacs008ToPacs009Mapper uses annotation-based configuration (unmappedTargetPolicy = WARN)
 
-import org.mapstruct.MapperConfig;
-import org.mapstruct.ReportingPolicy;
-
-@MapperConfig(
-    unmappedTargetPolicy = ReportingPolicy.WARN
-)
-public interface MappingConfig {
-}

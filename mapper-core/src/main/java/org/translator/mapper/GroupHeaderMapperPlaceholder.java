@@ -1,6 +1,5 @@
 // placeholder moved; original mapper consolidated into Pacs008ToPacs009Mapper
 package org.translator.mapper.placeholder;
 
-class GroupHeaderMapper {
-	// placeholder to keep file path; actual mapper consolidated in Pacs008ToPacs009Mapper
+public class GroupHeaderMapperPlaceholder {
 }

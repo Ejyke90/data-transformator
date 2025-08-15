@@ -1,6 +1,5 @@
 plugins {
     id 'java'
-    id 'org.unbroken-dome.xjc' version '2.0.0'
 }
 
 group = 'org.translator'
@@ -15,15 +14,4 @@ dependencies {
     implementation 'org.glassfish.jaxb:jaxb-runtime:3.0.2'
 }
 
-xjc {
-    generatePacs008 {
-        schema = file('../pacs.008.001.13.xsd')
-        packageName = 'org.translator.iso20022.pacs008'
-    }
-    generatePacs009 {
-        schema = file('../pacs.009.001.12.xsd')
-        packageName = 'org.translator.iso20022.pacs009'
-    }
-}
-
-sourceSets.main.java.srcDirs += file("${buildDir}/generated-sources/xjc")
+// NOTE: XJC generation will be configured in a later iteration using a compatible plugin or an explicit task.

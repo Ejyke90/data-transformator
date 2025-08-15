@@ -1,0 +1,422 @@
+{
+  "Amt": {
+    "pacs.008": [
+      "Amt",
+      "Amt",
+      "Amt",
+      "Amt"
+    ],
+    "pacs.009": [
+      "Amt",
+      "Amt",
+      "Amt",
+      "Amt"
+    ]
+  },
+  "BirthDt": {
+    "pacs.008": [
+      "BirthDt"
+    ],
+    "pacs.009": [
+      "BirthDt"
+    ]
+  },
+  "Cd": {
+    "pacs.008": [
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd"
+    ],
+    "pacs.009": [
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd",
+      "Cd"
+    ]
+  },
+  "CdOrPrtry": {
+    "pacs.008": [
+      "CdOrPrtry",
+      "CdOrPrtry",
+      "CdOrPrtry",
+      "CdOrPrtry"
+    ],
+    "pacs.009": [
+      "CdOrPrtry",
+      "CdOrPrtry",
+      "CdOrPrtry",
+      "CdOrPrtry"
+    ]
+  },
+  "CdtTrfTxInf": {
+    "pacs.008": [
+      "CdtTrfTxInf"
+    ],
+    "pacs.009": [
+      "CdtTrfTxInf"
+    ]
+  },
+  "Cdtr": {
+    "pacs.008": [
+      "Cdtr"
+    ],
+    "pacs.009": [
+      "Cdtr",
+      "Cdtr",
+      "Cdtr"
+    ]
+  },
+  "CdtrAgt": {
+    "pacs.008": [
+      "CdtrAgt"
+    ],
+    "pacs.009": [
+      "CdtrAgt"
+    ]
+  },
+  "ChanlTp": {
+    "pacs.008": [
+      "ChanlTp"
+    ],
+    "pacs.009": [
+      "ChanlTp"
+    ]
+  },
+  "CityOfBirth": {
+    "pacs.008": [
+      "CityOfBirth"
+    ],
+    "pacs.009": [
+      "CityOfBirth"
+    ]
+  },
+  "CreDtTm": {
+    "pacs.008": [
+      "CreDtTm"
+    ],
+    "pacs.009": [
+      "CreDtTm"
+    ]
+  },
+  "CtryOfBirth": {
+    "pacs.008": [
+      "CtryOfBirth"
+    ],
+    "pacs.009": [
+      "CtryOfBirth"
+    ]
+  },
+  "Dbtr": {
+    "pacs.008": [
+      "Dbtr"
+    ],
+    "pacs.009": [
+      "Dbtr",
+      "Dbtr",
+      "Dbtr"
+    ]
+  },
+  "DbtrAgt": {
+    "pacs.008": [
+      "DbtrAgt"
+    ],
+    "pacs.009": [
+      "DbtrAgt"
+    ]
+  },
+  "Document": {
+    "pacs.008": [
+      "Document"
+    ],
+    "pacs.009": [
+      "Document"
+    ]
+  },
+  "Dt": {
+    "pacs.008": [
+      "Dt"
+    ],
+    "pacs.009": [
+      "Dt"
+    ]
+  },
+  "EndToEndId": {
+    "pacs.008": [
+      "EndToEndId"
+    ],
+    "pacs.009": [
+      "EndToEndId"
+    ]
+  },
+  "Envlp": {
+    "pacs.008": [
+      "Envlp"
+    ],
+    "pacs.009": [
+      "Envlp"
+    ]
+  },
+  "FinInstnId": {
+    "pacs.008": [
+      "FinInstnId"
+    ],
+    "pacs.009": [
+      "FinInstnId"
+    ]
+  },
+  "FrDt": {
+    "pacs.008": [
+      "FrDt"
+    ],
+    "pacs.009": [
+      "FrDt"
+    ]
+  },
+  "GrpHdr": {
+    "pacs.008": [
+      "GrpHdr"
+    ],
+    "pacs.009": [
+      "GrpHdr"
+    ]
+  },
+  "IBAN": {
+    "pacs.008": [
+      "IBAN"
+    ],
+    "pacs.009": [
+      "IBAN"
+    ]
+  },
+  "ILPV4": {
+    "pacs.008": [
+      "ILPV4"
+    ],
+    "pacs.009": [
+      "ILPV4"
+    ]
+  },
+  "Id": {
+    "pacs.008": [
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id"
+    ],
+    "pacs.009": [
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id",
+      "Id"
+    ]
+  },
+  "IntrBkSttlmAmt": {
+    "pacs.008": [
+      "IntrBkSttlmAmt"
+    ],
+    "pacs.009": [
+      "IntrBkSttlmAmt",
+      "IntrBkSttlmAmt"
+    ]
+  },
+  "Issr": {
+    "pacs.008": [
+      "Issr"
+    ],
+    "pacs.009": [
+      "Issr"
+    ]
+  },
+  "MmbId": {
+    "pacs.008": [
+      "MmbId"
+    ],
+    "pacs.009": [
+      "MmbId"
+    ]
+  },
+  "MsgId": {
+    "pacs.008": [
+      "MsgId"
+    ],
+    "pacs.009": [
+      "MsgId"
+    ]
+  },
+  "NbOfTxs": {
+    "pacs.008": [
+      "NbOfTxs"
+    ],
+    "pacs.009": [
+      "NbOfTxs"
+    ]
+  },
+  "OrgId": {
+    "pacs.008": [
+      "OrgId"
+    ],
+    "pacs.009": [
+      "OrgId"
+    ]
+  },
+  "Othr": {
+    "pacs.008": [
+      "Othr"
+    ],
+    "pacs.009": [
+      "Othr"
+    ]
+  },
+  "PmtId": {
+    "pacs.008": [
+      "PmtId"
+    ],
+    "pacs.009": [
+      "PmtId",
+      "PmtId"
+    ]
+  },
+  "Prtry": {
+    "pacs.008": [
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry"
+    ],
+    "pacs.009": [
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry",
+      "Prtry"
+    ]
+  },
+  "PrvtId": {
+    "pacs.008": [
+      "PrvtId"
+    ],
+    "pacs.009": [
+      "PrvtId"
+    ]
+  },
+  "Sgntr": {
+    "pacs.008": [
+      "Sgntr"
+    ],
+    "pacs.009": [
+      "Sgntr"
+    ]
+  },
+  "SttlmInf": {
+    "pacs.008": [
+      "SttlmInf"
+    ],
+    "pacs.009": [
+      "SttlmInf"
+    ]
+  },
+  "SttlmMtd": {
+    "pacs.008": [
+      "SttlmMtd"
+    ],
+    "pacs.009": [
+      "SttlmMtd"
+    ]
+  },
+  "ToDt": {
+    "pacs.008": [
+      "ToDt"
+    ],
+    "pacs.009": [
+      "ToDt"
+    ]
+  },
+  "Tp": {
+    "pacs.008": [
+      "Tp",
+      "Tp",
+      "Tp",
+      "Tp",
+      "Tp",
+      "Tp"
+    ],
+    "pacs.009": [
+      "Tp",
+      "Tp",
+      "Tp"
+    ]
+  }
+}
