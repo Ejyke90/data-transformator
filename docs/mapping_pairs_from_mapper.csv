@@ -1,0 +1,24 @@
+targetPath,sourcePath,status,notes
+msgId,msgId,done,from-@Mapping
+creDtTm,creDtTm,done,from-@Mapping
+nbOfTxs,nbOfTxs,done,from-@Mapping
+ctrlSum,ctrlSum,done,from-@Mapping
+ttlIntrBkSttlmAmt,ttlIntrBkSttlmAmt,done,from-@Mapping
+sttlmInf,sttlmInf,done,from-@Mapping
+instgAgt,instgAgt,done,from-@Mapping
+instdAgt,instdAgt,done,from-@Mapping
+intrBkSttlmDt,intrBkSttlmDt,done,from-@Mapping
+pmtId.endToEndId,pmtId.endToEndId,done,from-@Mapping
+intrBkSttlmAmt,intrBkSttlmAmt,done,from-@Mapping
+pmtId.instrId,pmtId.instrId,done,from-@Mapping
+rmtInf,rmtInf,done,from-@Mapping
+cdtrAgt,cdtrAgt,done,from-@Mapping
+dbtrAgt,dbtrAgt,done,from-@Mapping
+cdtrAcct,cdtrAcct,done,from-@Mapping
+ultmtCdtr,ultmtCdtr,done,from-@Mapping
+prvsInstgAgt,prvsInstgAgt,done,from-@Mapping
+dbtr,dbtr,done,from-@Mapping
+cdtr,cdtr,done,from-@Mapping
+ultmtDbtr,ultmtDbtr,done,from-@Mapping
+instrForCdtrAgt,,ignore,explicitly ignored
+instrForNxtAgt,,ignore,explicitly ignored

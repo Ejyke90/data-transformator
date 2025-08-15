@@ -1,0 +1,46 @@
+sourcePath,sourceType,targetPath,targetType,mappingStrategy,status,testCaseId,notes
+GrpHdr.msgId,GroupHeader2,GrpHdr.msgId,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=msgId"
+GrpHdr.creDtTm,GroupHeader2,GrpHdr.creDtTm,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=creDtTm"
+GrpHdr.nbOfTxs,GroupHeader2,GrpHdr.nbOfTxs,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=nbOfTxs"
+GrpHdr.ctrlSum,GroupHeader2,GrpHdr.ctrlSum,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=ctrlSum"
+GrpHdr.ttlIntrBkSttlmAmt,GroupHeader2,GrpHdr.ttlIntrBkSttlmAmt,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=ttlIntrBkSttlmAmt"
+GrpHdr.sttlmInf,GroupHeader2,GrpHdr.sttlmInf,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=sttlmInf"
+GrpHdr.instgAgt,GroupHeader2,GrpHdr.instgAgt,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=instgAgt"
+GrpHdr.instdAgt,GroupHeader2,GrpHdr.instdAgt,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=instdAgt"
+GrpHdr.intrBkSttlmDt,GroupHeader2,GrpHdr.intrBkSttlmDt,GroupHeader4,direct,done,GH-1,"Mapped in map(GroupHeader2) with @Mapping target=intrBkSttlmDt"
+
+CdtTrfTxInf.pmtId.endToEndId,CreditTransferTransactionInformation2,CdtTrfTxInf.pmtId.endToEndId,CreditTransferTransactionInformation3,direct,done,TX-1,"@Mapping target=\"pmtId.endToEndId\""
+CdtTrfTxInf.pmtId.instrId,CreditTransferTransactionInformation2,CdtTrfTxInf.pmtId.instrId,CreditTransferTransactionInformation3,direct,done,TX-1,"@Mapping target=\"pmtId.instrId\""
+CdtTrfTxInf.intrBkSttlmAmt,CreditTransferTransactionInformation2,CdtTrfTxInf.intrBkSttlmAmt,CreditTransferTransactionInformation3,direct,done,TX-1,"@Mapping target=\"intrBkSttlmAmt\""
+CdtTrfTxInf.rmtInf,RemittanceInformation1,CdtTrfTxInf.rmtInf,RemittanceInformation2,custom(done via helper),done,REM-1,"@Mapping qualifiedByName=\"remittanceToUstrd\" -> default remittanceInformation1ToUstrd"
+CdtTrfTxInf.cdtrAgt,BranchAndFinancialInstitutionIdentification3,CdtTrfTxInf.cdtrAgt,BranchAndFinancialInstitutionIdentification3,direct,done,TX-2,"@Mapping target=\"cdtrAgt\""
+CdtTrfTxInf.dbtrAgt,BranchAndFinancialInstitutionIdentification3,CdtTrfTxInf.dbtrAgt,BranchAndFinancialInstitutionIdentification3,direct,done,TX-2,"@Mapping target=\"dbtrAgt\""
+CdtTrfTxInf.cdtrAcct,CashAccount7,CdtTrfTxInf.cdtrAcct,CashAccount7,direct,done,TX-2,"@Mapping target=\"cdtrAcct\""
+CdtTrfTxInf.ultmtCdtr,PartyIdentification8,CdtTrfTxInf.ultmtCdtr,PartyIdentification8,direct,done,TX-2,"@Mapping target=\"ultmtCdtr\""
+CdtTrfTxInf.prvsInstgAgt,BranchAndFinancialInstitutionIdentification3,CdtTrfTxInf.prvsInstgAgt,BranchAndFinancialInstitutionIdentification3,direct,done,TX-2,"@Mapping target=\"prvsInstgAgt\""
+CdtTrfTxInf.dbtr,PartyIdentification8,CdtTrfTxInf.dbtr,PartyIdentification8,direct,done,TX-2,"@Mapping target=\"dbtr\""
+CdtTrfTxInf.cdtr,PartyIdentification8,CdtTrfTxInf.cdtr,PartyIdentification8,direct,done,TX-2,"@Mapping target=\"cdtr\""
+CdtTrfTxInf.ultmtDbtr,PartyIdentification8,CdtTrfTxInf.ultmtDbtr,PartyIdentification8,direct,done,TX-2,"@Mapping target=\"ultmtDbtr\""
+CdtTrfTxInf.instrForCdtrAgt,?,CdtTrfTxInf.instrForCdtrAgt,?,ignore,done,TX-3,"Explicitly ignored in mapper (@Mapping ignore = true)"
+CdtTrfTxInf.instrForNxtAgt,?,CdtTrfTxInf.instrForNxtAgt,?,ignore,done,TX-3,"Explicitly ignored in mapper (@Mapping ignore = true)"
+
+PaymentTypeInformation3,PaymentTypeInformation3,PaymentTypeInformation5,PaymentTypeInformation5,custom/inferred,in-progress,PMT-1,"Declared mapping signature paymentTypeInformation3ToPaymentTypeInformation5 present; mapping coverage to be verified and expanded. AfterMapping copies some fields conservatively."
+
+Remittance: strd.getCdtrRefInf -> RemittanceInformation2.cdtrRefInf,StructuredRemittanceInformation18,custom,done,REM-1,"Default helper extracts structured fields (cdtrRefInf, rfrdDocAmt, taxRmt, grnshmtRmt) for first structured element if present"
+Remittance: strd.getRfrdDocAmt -> RemittanceInformation2.rfrdDocAmt,Amount,custom,done,REM-1,"Extracted if available"
+Remittance: strd.getAddtlRmtInf -> RemittanceInformation2.ustrd (append),String,custom,done,REM-1,"All additional remittance info strings appended to target ustrd list"
+
+CashAccount7.id,AccountIdentification3Choice,CashAccount7.id,AccountIdentification3Choice,direct+heuristic,done,IBAN-1,"IBAN heuristic: inspect Othr entries for IBAN-like string and set IBAN on target id when possible (cashAccount7ToCashAccount7)"
+CashAccount7.tp,CashAccount7,CashAccount7.tp,CashAccount7,direct,done,IBAN-1,"copy simple properties conservatively"
+CashAccount7.ccy,CashAccount7,CashAccount7.ccy,CashAccount7,direct,done,IBAN-1
+CashAccount7.nm,CashAccount7,CashAccount7.nm,CashAccount7,direct,done,IBAN-1
+
+PartyIdentification8.nm,PartyIdentification8,BranchAndFinancialInstitutionIdentification3.brnchId.BranchData.nm,String,custom,done,PARTY-1,"partyIdentification8ToBranchAndFinancialInstitutionIdentification3 copies name into BranchData"
+PartyIdentification8.pstlAdr,PartyIdentification8,BranchAndFinancialInstitutionIdentification3.finInstnId.NmAndAdr.pstlAdr,PostalAddress,custom,done,PARTY-1,"Name+postal address copied into NameAndAddress7"
+PartyIdentification8.id.orgId.BIC,OrganisationIdentification2,BranchAndFinancialInstitutionIdentification3.finInstnId.BIC,String,custom,done,PARTY-1,"If orgId.BIC present, set on FinancialInstitutionIdentification5Choice"
+PartyIdentification8.id.prvtId.Othr -> FinancialInstitutionIdentification5Choice.prtryId,GenericIdentification3,custom,done,PARTY-1,"Private ids aggregated into prtry list where possible"
+
+PartyIdentification272 (alias) -> BranchAndFinancialInstitutionIdentification3,PartyIdentification272,BranchAndFinancialInstitutionIdentification3,custom,done,PARTY-2,"Convenience alias partyIdentification272ToBranchAndFinancialInstitutionIdentification3 implemented"
+
+Misc: Group-level IDs in PmtId (AcctSvcrTxId, OthrTxId, etc.) -> copied where possible,custom,in-progress,ID-1,"AfterMapping attempts to copy a set of common PmtId fields; coverage to be extended and verified via tests"
+

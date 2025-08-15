@@ -39,3 +39,13 @@ application {
     // main class for `gradle :mapper-core:run`
     mainClass = 'org.translator.Runner'
 }
+
+// Utility task: generate an exhaustive mapping matrix CSV by reflecting over model classes
+tasks.register('generateMappingMatrix', JavaExec) {
+    group = 'tools'
+    description = 'Generate exhaustive mapping matrix CSV for specified model classes'
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass.set('org.translator.tools.GenerateMappingMatrix')
+    // default args: scan pacs.008 and pacs.009 Prowide classes and write to docs/mapping_matrix_exhaustive.csv
+    args = ['com.prowidesoftware.swift.model.mx.dic.Pacs00800101','com.prowidesoftware.swift.model.mx.dic.Pacs00900101','docs/mapping_matrix_exhaustive.csv']
+}
