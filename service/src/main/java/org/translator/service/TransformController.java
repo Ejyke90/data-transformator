@@ -3,16 +3,20 @@ package org.translator.service;
 import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
 import com.prowidesoftware.swift.model.mx.dic.Pacs00900101;
 import org.translator.mapper.Pacs008ToPacs009Mapper;
+import org.translator.mapper.MessageMappingDispatcher;
 
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
 import jakarta.xml.bind.Unmarshaller;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpEntity;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,11 +26,25 @@ import javax.xml.namespace.QName;
 @RequestMapping("/transform-payment")
 public class TransformController {
 
+    private static final Logger logger = LoggerFactory.getLogger(TransformController.class);
+
+    private final MessageMappingDispatcher dispatcher;
+
+    public TransformController(MessageMappingDispatcher dispatcher) {
+        this.dispatcher = dispatcher;
+    }
+
     @PostMapping(produces = MediaType.APPLICATION_XML_VALUE)
-    public ResponseEntity<String> transform(HttpEntity<String> requestEntity) {
+    public ResponseEntity<String> transform(HttpEntity<String> requestEntity,
+                                            @RequestHeader(value = "X-Target-Message-Type", required = false) String targetMessageType) {
         String xml = null;
         if (requestEntity != null) {
             xml = requestEntity.getBody();
+        }
+
+        // Log target message type header when provided (do not change default behavior)
+        if (targetMessageType != null && !targetMessageType.isBlank() && logger.isInfoEnabled()) {
+            logger.info("Request header X-Target-Message-Type: {}", targetMessageType);
         }
 
         if (xml == null || xml.isBlank()) {
@@ -37,20 +55,31 @@ public class TransformController {
             Unmarshaller unmarshaller = jaxbCtx.createUnmarshaller();
             // use typed unmarshal to handle the outer Document element (returns JAXBElement)
             javax.xml.transform.stream.StreamSource ss = new javax.xml.transform.stream.StreamSource(new java.io.StringReader(xml));
-            jakarta.xml.bind.JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
+            JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
             Pacs00800101 src = jel.getValue();
 
-            Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+            String outXml;
+            if (targetMessageType != null && !targetMessageType.isBlank()) {
+                // Delegate to dispatcher when header explicitly provided
+                outXml = dispatcher.mapXml(xml, targetMessageType);
+            } else {
+                Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
 
-            JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
-            Marshaller marshaller = outCtx.createMarshaller();
-            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-            QName rootName = new QName("urn:iso:std:iso:20022:tech:xsd:pacs.009.001.01", "Document");
-            JAXBElement<Pacs00900101> root = new JAXBElement<>(rootName, Pacs00900101.class, mapped);
+                JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
+                Marshaller marshaller = outCtx.createMarshaller();
+                marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+                QName rootName = new QName("urn:iso:std:iso:20022:tech:xsd:pacs.009.001.01", "Document");
+                JAXBElement<Pacs00900101> root = new JAXBElement<>(rootName, Pacs00900101.class, mapped);
 
-            java.io.StringWriter sw = new java.io.StringWriter();
-            marshaller.marshal(root, sw);
-            String outXml = sw.toString();
+                java.io.StringWriter sw = new java.io.StringWriter();
+                marshaller.marshal(root, sw);
+                outXml = sw.toString();
+            }
+
+            // Log the generated pacs.009 XML for debugging/inspection
+            if (logger.isInfoEnabled()) {
+                logger.info("Generated pacs.009 XML:\n{}", outXml);
+            }
 
             return ResponseEntity.ok().contentType(MediaType.APPLICATION_XML).body(outXml);
         } catch (jakarta.xml.bind.JAXBException jb) {
