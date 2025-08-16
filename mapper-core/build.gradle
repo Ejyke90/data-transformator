@@ -10,6 +10,10 @@ repositories {
     mavenCentral()
 }
 
+configurations {
+    xjc
+}
+
 dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
@@ -24,6 +28,10 @@ dependencies {
     // JAXB API + runtime (align with schema-generator 4.0.5)
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
     runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+
+    // XJC toolchain for JAXB code generation
+    xjc 'org.glassfish.jaxb:jaxb-xjc:4.0.5'
+    xjc 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
 }
 
 test {
@@ -40,6 +48,55 @@ application {
     // main class for `gradle :mapper-core:run`
     mainClass = 'org.translator.Runner'
 }
+
+// Generate Java classes from pain.001.001.12.xsd using XJC
+def pain001GenDir = file('src/main/java/org/translator/xsd/generated/pain_001')
+
+tasks.register('generatePain001Classes', JavaExec) {
+    group = 'codegen'
+    description = 'Generate Java POJOs from pain.001.001.12.xsd using JAXB XJC'
+    classpath = configurations.xjc
+    mainClass = 'com.sun.tools.xjc.Driver'
+
+    // Arguments: -d outputDir -p basePackage xsdPath
+    args '-d', 'src/main/java',
+         '-p', 'org.translator.xsd.generated.pain_001',
+         project.rootProject.file('pain.001.001.12.xsd').absolutePath
+
+    inputs.file(project.rootProject.file('pain.001.001.12.xsd'))
+    outputs.dir(pain001GenDir)
+
+    doFirst {
+        pain001GenDir.mkdirs()
+        println "Generating JAXB classes to ${pain001GenDir.absolutePath}"
+    }
+}
+
+// Generate Java classes from pacs.008.001.13.xsd using XJC
+def pacs008GenDir = file('src/main/java/org/translator/xsd/generated/pacs_008')
+
+tasks.register('generatePacs008Classes', JavaExec) {
+    group = 'codegen'
+    description = 'Generate Java POJOs from pacs.008.001.13.xsd using JAXB XJC'
+    classpath = configurations.xjc
+    mainClass = 'com.sun.tools.xjc.Driver'
+
+    // Arguments: -d outputDir -p basePackage xsdPath
+    args '-d', 'src/main/java',
+         '-p', 'org.translator.xsd.generated.pacs_008',
+         project.rootProject.file('pacs.008.001.13.xsd').absolutePath
+
+    inputs.file(project.rootProject.file('pacs.008.001.13.xsd'))
+    outputs.dir(pacs008GenDir)
+
+    doFirst {
+        pacs008GenDir.mkdirs()
+        println "Generating JAXB classes to ${pacs008GenDir.absolutePath}"
+    }
+}
+
+// Make sure compilation depends on code generation
+compileJava.dependsOn generatePain001Classes, generatePacs008Classes
 
 // Utility task: generate an exhaustive mapping matrix CSV by reflecting over model classes
 tasks.register('generateMappingMatrix', JavaExec) {
