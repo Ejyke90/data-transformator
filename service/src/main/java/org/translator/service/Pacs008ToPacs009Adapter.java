@@ -30,8 +30,10 @@ public class Pacs008ToPacs009Adapter implements MapperAdapter {
         JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
         Pacs00800101 src = jel.getValue();
 
-        Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+        // Use the mapProwide method to get a Prowide PACS.009 object
+        Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.mapProwide(src);
 
+        // Marshal the Prowide object to XML in Prowide format (compatible with test expectations)
         JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
         Marshaller marshaller = outCtx.createMarshaller();
         marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);

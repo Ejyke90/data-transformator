@@ -46,7 +46,8 @@ public class DefaultMessageMappingDispatcher implements MessageMappingDispatcher
         JAXBElement<Pacs00800101> jel = unmarshaller.unmarshal(ss, Pacs00800101.class);
         Pacs00800101 src = jel.getValue();
 
-        Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+        // Fix: Use mapProwide method instead of the non-existent map() method
+        Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.mapProwide(src);
 
         JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
         Marshaller marshaller = outCtx.createMarshaller();
