@@ -13,16 +13,17 @@ repositories {
 dependencies {
     implementation 'org.mapstruct:mapstruct:1.6.3'
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
-    
+
     implementation 'com.prowidesoftware:pw-iso20022:SRU2024-10.2.7'
 
-    // Depend on generated model module (schema-generator) for PoC; in later iterations
-    // consider moving generated sources into a dedicated module/artifact.
+    // Consume generated JAXB POJOs from schema-generator
     implementation project(':schema-generator')
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.0'
-    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.3'
+
+    // JAXB API + runtime (align with schema-generator 4.0.5)
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
+    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
 }
 
 test {
