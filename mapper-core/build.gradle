@@ -1,109 +1,86 @@
 plugins {
     id 'java'
-    id 'application'
-}
-
-group = 'org.translator'
-version = '0.1.0'
-
-repositories {
-    mavenCentral()
-}
-
-configurations {
-    xjc
 }
 
 dependencies {
-    implementation 'org.mapstruct:mapstruct:1.6.3'
-    annotationProcessor 'org.mapstruct:mapstruct-processor:1.6.3'
+    // ProWide SWIFT ISO 20022 library for PACS message types
+    implementation 'com.prowidesoftware:pw-iso20022:SRU2023-10.1.6'
 
-    implementation 'com.prowidesoftware:pw-iso20022:SRU2024-10.2.7'
+    // JAXB dependencies for XML binding annotations
+    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.1'
+    implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.4'
+    implementation 'org.glassfish.jaxb:jaxb-xjc:4.0.4'
 
-    // Consume generated JAXB POJOs from schema-generator
-    implementation project(':schema-generator')
+    // MapStruct for annotation processing
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
+    // Logging dependencies
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
 
-    // JAXB API + runtime (align with schema-generator 4.0.5)
-    implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.2'
-    runtimeOnly 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
-
-    // XJC toolchain for JAXB code generation
-    xjc 'org.glassfish.jaxb:jaxb-xjc:4.0.5'
-    xjc 'org.glassfish.jaxb:jaxb-runtime:4.0.5'
+    // Test dependencies
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.9.3'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
+
+// Custom task to generate Java classes from XSD files
+task generateXSDClasses(type: JavaExec) {
+    description = 'Generate Java classes from XSD files'
+    group = 'build'
+
+    classpath = configurations.runtimeClasspath + configurations.compileClasspath
+    mainClass = 'com.sun.tools.xjc.XJCFacade'
+
+    args = [
+        '-d', 'src/main/java',
+        '-p', 'org.translator.xsd.generated.pacs_008',
+        '../pacs.008.001.13.xsd'
+    ]
+
+    doFirst {
+        file('src/main/java/org/translator/xsd/generated/pacs_008').mkdirs()
+        file('src/main/java/org/translator/xsd/generated/pacs_009').mkdirs()
+        file('src/main/java/org/translator/xsd/generated/pain_001').mkdirs()
+    }
+}
+
+task generatePacs009Classes(type: JavaExec) {
+    description = 'Generate Java classes from PACS 009 XSD file'
+    group = 'build'
+
+    classpath = configurations.runtimeClasspath + configurations.compileClasspath
+    mainClass = 'com.sun.tools.xjc.XJCFacade'
+
+    args = [
+        '-d', 'src/main/java',
+        '-p', 'org.translator.xsd.generated.pacs_009',
+        '../pacs.009.001.12.xsd'
+    ]
+}
+
+task generatePain001Classes(type: JavaExec) {
+    description = 'Generate Java classes from PAIN 001 XSD file'
+    group = 'build'
+
+    classpath = configurations.runtimeClasspath + configurations.compileClasspath
+    mainClass = 'com.sun.tools.xjc.XJCFacade'
+
+    args = [
+        '-d', 'src/main/java',
+        '-p', 'org.translator.xsd.generated.pain_001',
+        '../pain.001.001.12.xsd'
+    ]
+}
+
+task generateAllXSDClasses {
+    dependsOn generateXSDClasses, generatePacs009Classes, generatePain001Classes
+    description = 'Generate all Java classes from XSD files'
+    group = 'build'
+}
+
+compileJava.dependsOn generateAllXSDClasses
 
 test {
     useJUnitPlatform()
-}
-
-// Ensure annotation-processor generated sources are compiled and visible to IDEs
-tasks.withType(JavaCompile) {
-    options.annotationProcessorGeneratedSourcesDirectory = file("$buildDir/generated/sources/annotationProcessor/java/main")
-}
-sourceSets.main.java.srcDirs += "$buildDir/generated/sources/annotationProcessor/java/main"
-
-application {
-    // main class for `gradle :mapper-core:run`
-    mainClass = 'org.translator.Runner'
-}
-
-// Generate Java classes from pain.001.001.12.xsd using XJC
-def pain001GenDir = file('src/main/java/org/translator/xsd/generated/pain_001')
-
-tasks.register('generatePain001Classes', JavaExec) {
-    group = 'codegen'
-    description = 'Generate Java POJOs from pain.001.001.12.xsd using JAXB XJC'
-    classpath = configurations.xjc
-    mainClass = 'com.sun.tools.xjc.Driver'
-
-    // Arguments: -d outputDir -p basePackage xsdPath
-    args '-d', 'src/main/java',
-         '-p', 'org.translator.xsd.generated.pain_001',
-         project.rootProject.file('pain.001.001.12.xsd').absolutePath
-
-    inputs.file(project.rootProject.file('pain.001.001.12.xsd'))
-    outputs.dir(pain001GenDir)
-
-    doFirst {
-        pain001GenDir.mkdirs()
-        println "Generating JAXB classes to ${pain001GenDir.absolutePath}"
-    }
-}
-
-// Generate Java classes from pacs.008.001.13.xsd using XJC
-def pacs008GenDir = file('src/main/java/org/translator/xsd/generated/pacs_008')
-
-tasks.register('generatePacs008Classes', JavaExec) {
-    group = 'codegen'
-    description = 'Generate Java POJOs from pacs.008.001.13.xsd using JAXB XJC'
-    classpath = configurations.xjc
-    mainClass = 'com.sun.tools.xjc.Driver'
-
-    // Arguments: -d outputDir -p basePackage xsdPath
-    args '-d', 'src/main/java',
-         '-p', 'org.translator.xsd.generated.pacs_008',
-         project.rootProject.file('pacs.008.001.13.xsd').absolutePath
-
-    inputs.file(project.rootProject.file('pacs.008.001.13.xsd'))
-    outputs.dir(pacs008GenDir)
-
-    doFirst {
-        pacs008GenDir.mkdirs()
-        println "Generating JAXB classes to ${pacs008GenDir.absolutePath}"
-    }
-}
-
-// Make sure compilation depends on code generation
-compileJava.dependsOn generatePain001Classes, generatePacs008Classes
-
-// Utility task: generate an exhaustive mapping matrix CSV by reflecting over model classes
-tasks.register('generateMappingMatrix', JavaExec) {
-    group = 'tools'
-    description = 'Generate exhaustive mapping matrix CSV for specified model classes'
-    classpath = sourceSets.main.runtimeClasspath
-    mainClass.set('org.translator.tools.GenerateMappingMatrix')
-    // default args: scan pacs.008 and pacs.009 Prowide classes and write to docs/mapping_matrix_exhaustive.csv
-    args = ['com.prowidesoftware.swift.model.mx.dic.Pacs00800101','com.prowidesoftware.swift.model.mx.dic.Pacs00900101','docs/mapping_matrix_exhaustive.csv']
 }

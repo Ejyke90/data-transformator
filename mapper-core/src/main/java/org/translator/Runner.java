@@ -6,6 +6,10 @@ import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
 import com.prowidesoftware.swift.model.mx.dic.CreditTransferTransactionInformation2;
 import com.prowidesoftware.swift.model.mx.dic.PaymentIdentification2;
 
+// Use our generated classes for missing ProWide types
+import org.translator.xsd.generated.pacs_008.PersonIdentification18;
+import org.translator.xsd.generated.pacs_008.GenericPersonIdentification2;
+
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBElement;
 import jakarta.xml.bind.Marshaller;
@@ -57,16 +61,16 @@ public class Runner {
     org.setPrtryId(pr);
     p2.setOrgId(org);
     // add a private id (PrvtId) with multiple Othr entries to exercise aggregation
-    com.prowidesoftware.swift.model.mx.dic.PersonIdentification18 prvt = new com.prowidesoftware.swift.model.mx.dic.PersonIdentification18();
-    com.prowidesoftware.swift.model.mx.dic.GenericPersonIdentification2 gp1 = new com.prowidesoftware.swift.model.mx.dic.GenericPersonIdentification2();
+    PersonIdentification18 prvt = new PersonIdentification18();
+    GenericPersonIdentification2 gp1 = new GenericPersonIdentification2();
     gp1.setId("PRV-ONE-123");
-    com.prowidesoftware.swift.model.mx.dic.PersonIdentificationSchemeName1Choice sch1 = new com.prowidesoftware.swift.model.mx.dic.PersonIdentificationSchemeName1Choice();
+    org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice sch1 = new org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice();
     sch1.setPrtry("PRV-SCHEME-A");
     gp1.setSchmeNm(sch1);
     prvt.getOthr().add(gp1);
-    com.prowidesoftware.swift.model.mx.dic.GenericPersonIdentification2 gp2 = new com.prowidesoftware.swift.model.mx.dic.GenericPersonIdentification2();
+    GenericPersonIdentification2 gp2 = new GenericPersonIdentification2();
     gp2.setId("PRV-TWO-456");
-    com.prowidesoftware.swift.model.mx.dic.PersonIdentificationSchemeName1Choice sch2 = new com.prowidesoftware.swift.model.mx.dic.PersonIdentificationSchemeName1Choice();
+    org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice sch2 = new org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice();
     sch2.setPrtry("PRV-SCHEME-B");
     gp2.setSchmeNm(sch2);
     prvt.getOthr().add(gp2);
@@ -163,7 +167,7 @@ public class Runner {
                         // append PrtryId nodes for each private id entry in source prvt
                         try {
                             if (prvt != null && prvt.getOthr() != null) {
-                                for (com.prowidesoftware.swift.model.mx.dic.GenericPersonIdentification2 gp : prvt.getOthr()) {
+                                for (GenericPersonIdentification2 gp : prvt.getOthr()) {
                                     if (gp == null) continue;
                                     String idVal = gp.getId();
                                     String iss = null;

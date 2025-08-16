@@ -22,7 +22,8 @@ import com.prowidesoftware.swift.model.mx.dic.PaymentTypeInformation3;
 import com.prowidesoftware.swift.model.mx.dic.PaymentTypeInformation5;
 import com.prowidesoftware.swift.model.mx.dic.RemittanceInformation1;
 import com.prowidesoftware.swift.model.mx.dic.RemittanceInformation2;
-import com.prowidesoftware.swift.model.mx.dic.StructuredRemittanceInformation18;
+import org.translator.xsd.generated.pacs_008.StructuredRemittanceInformation18;
+import org.translator.xsd.generated.pacs_008.PartyIdentification272;
 
 @Mapper(
     unmappedTargetPolicy = ReportingPolicy.WARN
@@ -411,7 +412,7 @@ public interface Pacs008ToPacs009Mapper {
     }
 
     // convenience alias: MapStruct may expect method named partyIdentification272ToBranchAndFinancialInstitutionIdentification3
-    default BranchAndFinancialInstitutionIdentification3 partyIdentification272ToBranchAndFinancialInstitutionIdentification3(com.prowidesoftware.swift.model.mx.dic.PartyIdentification272 p) {
+    default BranchAndFinancialInstitutionIdentification3 partyIdentification272ToBranchAndFinancialInstitutionIdentification3(PartyIdentification272 p) {
         if (p == null) return null;
         // conservative: only copy name and compatible organisation id if present
         PartyIdentification8 tmp = new PartyIdentification8();

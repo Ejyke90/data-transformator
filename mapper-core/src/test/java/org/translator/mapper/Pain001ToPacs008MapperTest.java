@@ -3,433 +3,818 @@ package org.translator.mapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
-import org.translator.xsd.generated.pain_001.Document;
-import org.translator.xsd.generated.pain_001.GroupHeader114;
-import org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12;
-import org.translator.xsd.generated.pacs_008.FIToFICustomerCreditTransferV13;
-import org.translator.xsd.generated.pacs_008.GroupHeader131;
+import org.junit.jupiter.api.Nested;
+import static org.junit.jupiter.api.Assertions.*;
 
+import org.translator.xsd.generated.pain_001.*;
+import org.translator.xsd.generated.pacs_008.*;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 import jakarta.xml.bind.JAXBContext;
 import jakarta.xml.bind.JAXBException;
 import jakarta.xml.bind.Marshaller;
-import jakarta.xml.bind.Unmarshaller;
-import java.io.StringReader;
 import java.io.StringWriter;
-import java.math.BigDecimal;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-import java.util.GregorianCalendar;
-import java.util.List;
-import java.util.logging.Logger;
-
-import static org.junit.jupiter.api.Assertions.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
- * Unit tests for Pain001ToPacs008Mapper
- * Tests the transformation from Pain.001 (Customer Credit Transfer Initiation)
- * to PACS.008 (FI to FI Customer Credit Transfer)
+ * Comprehensive test suite for Pain001ToPacs008Mapper
+ * Tests all mapping functionality, business logic, and edge cases
+ * Enhanced with XML logging for debugging and validation
  */
 class Pain001ToPacs008MapperTest {
 
-    private static final Logger logger = Logger.getLogger(Pain001ToPacs008MapperTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Pain001ToPacs008MapperTest.class);
+
     private Pain001ToPacs008Mapper mapper;
+    private DatatypeFactory datatypeFactory;
     private JAXBContext pain001Context;
     private JAXBContext pacs008Context;
 
     @BeforeEach
-    void setUp() throws JAXBException {
+    void setUp() throws Exception {
         mapper = Pain001ToPacs008Mapper.INSTANCE;
+        datatypeFactory = DatatypeFactory.newInstance();
 
-        // Initialize JAXB contexts for marshalling/unmarshalling
-        pain001Context = JAXBContext.newInstance(Document.class);
-        pacs008Context = JAXBContext.newInstance(org.translator.xsd.generated.pacs_008.Document.class);
-    }
-
-    @Test
-    @DisplayName("Test complete Pain.001 to PACS.008 document transformation")
-    void testCompleteDocumentTransformation() throws JAXBException {
-        // Given: Create a sample Pain.001 document
-        Document pain001Document = createSamplePain001Document();
-
-        // Log the input Pain.001 document
-        logger.info("=== INPUT PAIN.001 DOCUMENT ===");
-        String pain001Xml = marshalToXml(pain001Document, pain001Context);
-        logger.info(pain001Xml);
-
-        // When: Transform Pain.001 to PACS.008
-        org.translator.xsd.generated.pacs_008.Document pacs008Document = mapper.mapDocument(pain001Document);
-
-        // Log the generated PACS.008 document
-        logger.info("=== GENERATED PACS.008 DOCUMENT ===");
-        String pacs008Xml = marshalToXml(pacs008Document, pacs008Context);
-        logger.info(pacs008Xml);
-
-        // Then: Verify the transformation
-        assertNotNull(pacs008Document, "PACS.008 document should not be null");
-        assertNotNull(pacs008Document.getFIToFICstmrCdtTrf(), "FIToFICstmrCdtTrf should not be null");
-
-        // Verify GroupHeader mapping
-        FIToFICustomerCreditTransferV13 creditTransfer = pacs008Document.getFIToFICstmrCdtTrf();
-        GroupHeader131 pacs008Header = creditTransfer.getGrpHdr();
-        assertNotNull(pacs008Header, "PACS.008 GroupHeader should not be null");
-
-        // Verify direct field mappings from Phase 1
-        assertEquals("MSG12345", pacs008Header.getMsgId(), "Message ID should be mapped correctly");
-        assertEquals("2", pacs008Header.getNbOfTxs(), "Number of transactions should be mapped correctly");
-        assertEquals(new BigDecimal("250.75"), pacs008Header.getCtrlSum(), "Control sum should be mapped correctly");
-        assertNotNull(pacs008Header.getCreDtTm(), "Creation date time should be mapped correctly");
-    }
-
-    @Test
-    @DisplayName("Test GroupHeader transformation - Phase 1 direct mappings")
-    void testGroupHeaderTransformation() {
-        // Given: Create a sample GroupHeader114
-        GroupHeader114 pain001Header = createSampleGroupHeader();
-
-        // When: Transform GroupHeader
-        GroupHeader131 pacs008Header = mapper.mapGroupHeader(pain001Header);
-
-        // Log the transformation details
-        logger.info("=== GROUPHEADER TRANSFORMATION ===");
-        logger.info("Pain.001 MsgId: " + pain001Header.getMsgId() + " -> PACS.008 MsgId: " + pacs008Header.getMsgId());
-        logger.info("Pain.001 NbOfTxs: " + pain001Header.getNbOfTxs() + " -> PACS.008 NbOfTxs: " + pacs008Header.getNbOfTxs());
-        logger.info("Pain.001 CtrlSum: " + pain001Header.getCtrlSum() + " -> PACS.008 CtrlSum: " + pacs008Header.getCtrlSum());
-        logger.info("Pain.001 CreDtTm: " + pain001Header.getCreDtTm() + " -> PACS.008 CreDtTm: " + pacs008Header.getCreDtTm());
-
-        // Then: Verify Phase 1 direct mappings
-        assertNotNull(pacs008Header, "PACS.008 GroupHeader should not be null");
-        assertEquals(pain001Header.getMsgId(), pacs008Header.getMsgId(), "Message ID should be mapped directly");
-        assertEquals(pain001Header.getNbOfTxs(), pacs008Header.getNbOfTxs(), "Number of transactions should be mapped directly");
-        assertEquals(pain001Header.getCtrlSum(), pacs008Header.getCtrlSum(), "Control sum should be mapped directly");
-        assertEquals(pain001Header.getCreDtTm(), pacs008Header.getCreDtTm(), "Creation date time should be mapped directly");
-
-        // Verify Phase 2 fields are null (as expected for ignored mappings)
-        assertNull(pacs008Header.getSttlmInf(), "Settlement info should be null (Phase 2)");
-        assertNull(pacs008Header.getXpryDtTm(), "Expiry date time should be null (Phase 2)");
-        assertNull(pacs008Header.isBtchBookg(), "Batch booking should be null (Phase 2)");
-        assertNull(pacs008Header.getTtlIntrBkSttlmAmt(), "Total interbank settlement amount should be null (Phase 2)");
-        assertNull(pacs008Header.getIntrBkSttlmDt(), "Interbank settlement date should be null (Phase 2)");
-        assertNull(pacs008Header.getPmtTpInf(), "Payment type info should be null (Phase 2)");
-        assertNull(pacs008Header.getInstgAgt(), "Instructing agent should be null (Phase 2)");
-        assertNull(pacs008Header.getInstdAgt(), "Instructed agent should be null (Phase 2)");
-    }
-
-    @Test
-    @DisplayName("Test CustomerCreditTransferInitiation transformation")
-    void testCreditTransferInitiationTransformation() {
-        // Given: Create a sample CustomerCreditTransferInitiationV12
-        CustomerCreditTransferInitiationV12 pain001Initiation = createSampleCreditTransferInitiation();
-
-        // When: Transform to FIToFICustomerCreditTransferV13
-        FIToFICustomerCreditTransferV13 pacs008Transfer = mapper.mapCreditTransferInitiation(pain001Initiation);
-
-        // Log the transformation
-        logger.info("=== CREDIT TRANSFER INITIATION TRANSFORMATION ===");
-        logger.info("Pain.001 has GroupHeader: " + (pain001Initiation.getGrpHdr() != null));
-        logger.info("PACS.008 has GroupHeader: " + (pacs008Transfer.getGrpHdr() != null));
-        logger.info("PACS.008 cdtTrfTxInf (Phase 2): " + pacs008Transfer.getCdtTrfTxInf());
-        logger.info("PACS.008 splmtryData (Phase 2): " + pacs008Transfer.getSplmtryData());
-
-        // Then: Verify the transformation
-        assertNotNull(pacs008Transfer, "PACS.008 credit transfer should not be null");
-        assertNotNull(pacs008Transfer.getGrpHdr(), "PACS.008 GroupHeader should be mapped");
-
-        // Verify Phase 2 fields are empty lists as expected (MapStruct initializes collections as empty lists)
-        assertTrue(pacs008Transfer.getCdtTrfTxInf().isEmpty(), "cdtTrfTxInf should be empty list (Phase 2)");
-        assertTrue(pacs008Transfer.getSplmtryData().isEmpty(), "splmtryData should be empty list (Phase 2)");
-    }
-
-    @Test
-    @DisplayName("Phase 2: Test complete Pain.001 to PACS.008 transformation with payment instructions")
-    void testPhase2CompleteTransformation() throws JAXBException {
-        // Given: Create a comprehensive Pain.001 document with payment instructions
-        Document pain001Document = createCompletePain001Document();
-
-        // Log the input Pain.001 document
-        logger.info("=== PHASE 2 INPUT PAIN.001 DOCUMENT ===");
-        String pain001Xml = marshalToXml(pain001Document, pain001Context);
-        logger.info(pain001Xml);
-
-        // When: Transform Pain.001 to PACS.008 with Phase 2 logic
-        org.translator.xsd.generated.pacs_008.Document pacs008Document = mapper.mapDocument(pain001Document);
-
-        // Log the generated PACS.008 document
-        logger.info("=== PHASE 2 GENERATED PACS.008 DOCUMENT ===");
-        String pacs008Xml = marshalToXml(pacs008Document, pacs008Context);
-        logger.info(pacs008Xml);
-
-        // Then: Verify Phase 2 transformations
-        assertNotNull(pacs008Document, "PACS.008 document should not be null");
-
-        FIToFICustomerCreditTransferV13 creditTransfer = pacs008Document.getFIToFICstmrCdtTrf();
-        assertNotNull(creditTransfer, "Credit transfer should not be null");
-
-        // Verify Phase 2: Credit Transfer Transactions are populated
-        assertFalse(creditTransfer.getCdtTrfTxInf().isEmpty(), "Phase 2: Credit transfer transactions should be populated");
-
-        // Verify Phase 2: GroupHeader enhancements
-        GroupHeader131 pacs008Header = creditTransfer.getGrpHdr();
-        assertNotNull(pacs008Header.getSttlmInf(), "Phase 2: Settlement info should be populated");
-        assertNotNull(pacs008Header.isBtchBookg(), "Phase 2: Batch booking should be derived");
-        assertNotNull(pacs008Header.getTtlIntrBkSttlmAmt(), "Phase 2: Total interbank amount should be calculated");
-        assertNotNull(pacs008Header.getIntrBkSttlmDt(), "Phase 2: Interbank settlement date should be derived");
-        assertNotNull(pacs008Header.getPmtTpInf(), "Phase 2: Payment type info should be derived");
-
-        // Log Phase 2 specific transformations
-        logger.info("=== PHASE 2 TRANSFORMATION DETAILS ===");
-        logger.info("Credit Transfer Transactions count: " + creditTransfer.getCdtTrfTxInf().size());
-        logger.info("Batch Booking: " + pacs008Header.isBtchBookg());
-        logger.info("Settlement Method: " + (pacs008Header.getSttlmInf() != null ? pacs008Header.getSttlmInf().getSttlmMtd() : "null"));
-        logger.info("Payment Type Service Level: " +
-                   (pacs008Header.getPmtTpInf() != null && pacs008Header.getPmtTpInf().getSvcLvl() != null ?
-                    pacs008Header.getPmtTpInf().getSvcLvl().getCd() : "null"));
-    }
-
-    @Test
-    @DisplayName("Phase 2: Test payment instruction to credit transfer transaction mapping")
-    void testPhase2PaymentInstructionMapping() {
-        // Given: Create a payment instruction with credit transfer transactions
-        org.translator.xsd.generated.pain_001.PaymentInstruction44 paymentInstruction = createSamplePaymentInstruction();
-
-        // When: Transform to credit transfer transactions
-        List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> transactions =
-            mapper.mapPaymentInstruction(paymentInstruction);
-
-        // Then: Verify the transformation
-        assertNotNull(transactions, "Transactions should not be null");
-        assertFalse(transactions.isEmpty(), "Phase 2: Should have mapped transactions");
-
-        // Log transaction details
-        logger.info("=== PHASE 2 PAYMENT INSTRUCTION MAPPING ===");
-        logger.info("Mapped " + transactions.size() + " credit transfer transactions");
-
-        // Verify transaction structure
-        org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 firstTx = transactions.get(0);
-        assertNotNull(firstTx.getPmtId(), "Payment ID should be mapped");
-        assertNotNull(firstTx.getAmt(), "Amount should be mapped");
-
-        logger.info("First transaction payment ID: " +
-                   (firstTx.getPmtId() != null ? firstTx.getPmtId().getEndToEndId() : "null"));
-    }
-
-    @Test
-    @DisplayName("Phase 2: Test business logic derivations")
-    void testPhase2BusinessLogic() {
-        // Given: Create a sample GroupHeader
-        GroupHeader114 pain001Header = createSampleGroupHeader();
-
-        // When: Apply Phase 2 business logic transformations
-        GroupHeader131 pacs008Header = mapper.mapGroupHeader(pain001Header);
-
-        // Then: Verify business logic results
-        logger.info("=== PHASE 2 BUSINESS LOGIC VERIFICATION ===");
-
-        // Verify batch booking derivation
-        assertTrue(pacs008Header.isBtchBookg(), "Phase 2: Batch booking should default to true");
-        logger.info("Batch booking derived: " + pacs008Header.isBtchBookg());
-
-        // Verify settlement instruction creation
-        assertNotNull(pacs008Header.getSttlmInf(), "Settlement instruction should be created");
-        assertEquals(org.translator.xsd.generated.pacs_008.SettlementMethod1Code.CLRG,
-                    pacs008Header.getSttlmInf().getSttlmMtd(),
-                    "Settlement method should default to CLRG");
-        logger.info("Settlement method: " + pacs008Header.getSttlmInf().getSttlmMtd());
-
-        // Verify interbank amount creation
-        assertNotNull(pacs008Header.getTtlIntrBkSttlmAmt(), "Total interbank amount should be created");
-        assertEquals("EUR", pacs008Header.getTtlIntrBkSttlmAmt().getCcy(), "Currency should default to EUR");
-        assertEquals(pain001Header.getCtrlSum(), pacs008Header.getTtlIntrBkSttlmAmt().getValue(),
-                    "Amount should match control sum");
-        logger.info("Interbank amount: " + pacs008Header.getTtlIntrBkSttlmAmt().getValue() + " " +
-                   pacs008Header.getTtlIntrBkSttlmAmt().getCcy());
-
-        // Verify settlement date derivation
-        assertEquals(pain001Header.getCreDtTm(), pacs008Header.getIntrBkSttlmDt(),
-                    "Settlement date should match creation date");
-        logger.info("Settlement date: " + pacs008Header.getIntrBkSttlmDt());
-
-        // Verify payment type info derivation
-        assertNotNull(pacs008Header.getPmtTpInf(), "Payment type info should be created");
-        assertNotNull(pacs008Header.getPmtTpInf().getSvcLvl(), "Service level should be set");
-        assertEquals("SEPA", pacs008Header.getPmtTpInf().getSvcLvl().getCd(), "Service level should default to SEPA");
-        logger.info("Service level: " + pacs008Header.getPmtTpInf().getSvcLvl().getCd());
-    }
-
-    /**
-     * Helper method to create a sample Pain.001 Document for testing
-     */
-    private Document createSamplePain001Document() {
-        Document document = new Document();
-        CustomerCreditTransferInitiationV12 initiation = createSampleCreditTransferInitiation();
-        document.setCstmrCdtTrfInitn(initiation);
-        return document;
-    }
-
-    /**
-     * Helper method to create a sample CustomerCreditTransferInitiationV12
-     */
-    private CustomerCreditTransferInitiationV12 createSampleCreditTransferInitiation() {
-        CustomerCreditTransferInitiationV12 initiation = new CustomerCreditTransferInitiationV12();
-        initiation.setGrpHdr(createSampleGroupHeader());
-        // Note: pmtInf will be handled in Phase 2
-        return initiation;
-    }
-
-    /**
-     * Helper method to create a sample GroupHeader114 for testing
-     */
-    private GroupHeader114 createSampleGroupHeader() {
+        // Initialize JAXB contexts for XML marshalling
         try {
-            GroupHeader114 header = new GroupHeader114();
-            header.setMsgId("MSG12345");
-
-            // Create XMLGregorianCalendar for current date/time
-            GregorianCalendar gcal = new GregorianCalendar();
-            XMLGregorianCalendar xmlDate = DatatypeFactory.newInstance().newXMLGregorianCalendar(gcal);
-            header.setCreDtTm(xmlDate);
-
-            header.setNbOfTxs("2");
-            header.setCtrlSum(new BigDecimal("250.75"));
-            return header;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create sample GroupHeader114", e);
+            pain001Context = JAXBContext.newInstance("org.translator.xsd.generated.pain_001");
+            pacs008Context = JAXBContext.newInstance("org.translator.xsd.generated.pacs_008");
+        } catch (JAXBException e) {
+            logger.error("Failed to initialize JAXB contexts", e);
+            throw new RuntimeException("JAXB initialization failed", e);
         }
     }
 
     /**
-     * Helper method to marshal objects to XML string for logging
+     * Helper method to marshal Pain.001 document to XML string
      */
-    private String marshalToXml(Object object, JAXBContext context) {
+    private String marshallPain001ToXml(org.translator.xsd.generated.pain_001.Document document) {
         try {
-            Marshaller marshaller = context.createMarshaller();
+            Marshaller marshaller = pain001Context.createMarshaller();
             marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-            marshaller.setProperty(Marshaller.JAXB_FRAGMENT, false);
             StringWriter writer = new StringWriter();
-            marshaller.marshal(object, writer);
+            marshaller.marshal(document, writer);
             return writer.toString();
         } catch (JAXBException e) {
-            logger.info("XML marshalling not available in test context - this is normal for Phase 1 testing");
-            return "XML output: [Generated PACS.008 structure is valid - marshalling skipped in test]";
-        } catch (Exception e) {
-            logger.info("XML output not available: " + e.getMessage());
-            return "XML output: [Generated PACS.008 structure is valid - " + e.getMessage() + "]";
+            logger.error("Failed to marshal Pain.001 document to XML", e);
+            return "Failed to marshal Pain.001: " + e.getMessage();
         }
     }
 
     /**
-     * Helper method to create a comprehensive Pain.001 Document with payment instructions for Phase 2 testing
+     * Helper method to marshal PACS.008 document to XML string
      */
-    private Document createCompletePain001Document() {
-        Document document = new Document();
-        CustomerCreditTransferInitiationV12 initiation = new CustomerCreditTransferInitiationV12();
-
-        // Set group header
-        initiation.setGrpHdr(createSampleGroupHeader());
-
-        // Add payment instructions with credit transfer transactions
-        List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new java.util.ArrayList<>();
-        pmtInf.add(createSamplePaymentInstruction());
-        initiation.setPmtInf(pmtInf);
-
-        document.setCstmrCdtTrfInitn(initiation);
-        return document;
-    }
-
-    /**
-     * Helper method to create a sample PaymentInstruction44 with credit transfer transactions
-     */
-    private org.translator.xsd.generated.pain_001.PaymentInstruction44 createSamplePaymentInstruction() {
+    private String marshallPacs008ToXml(org.translator.xsd.generated.pacs_008.Document document) {
         try {
-            org.translator.xsd.generated.pain_001.PaymentInstruction44 pmtInf =
-                new org.translator.xsd.generated.pain_001.PaymentInstruction44();
-
-            pmtInf.setPmtInfId("PMTINF001");
-            pmtInf.setPmtMtd(org.translator.xsd.generated.pain_001.PaymentMethod3Code.TRF);
-            pmtInf.setBtchBookg(true);
-            pmtInf.setNbOfTxs("1");
-            pmtInf.setCtrlSum(new BigDecimal("100.00"));
-
-            // Set required execution date
-            org.translator.xsd.generated.pain_001.DateAndDateTime2Choice reqdExctnDt =
-                new org.translator.xsd.generated.pain_001.DateAndDateTime2Choice();
-            reqdExctnDt.setDt(javax.xml.datatype.DatatypeFactory.newInstance()
-                .newXMLGregorianCalendar(new java.util.GregorianCalendar()));
-            pmtInf.setReqdExctnDt(reqdExctnDt);
-
-            // Create sample debtor
-            org.translator.xsd.generated.pain_001.PartyIdentification272 dbtr =
-                new org.translator.xsd.generated.pain_001.PartyIdentification272();
-            dbtr.setNm("Sample Debtor");
-            pmtInf.setDbtr(dbtr);
-
-            // Create sample debtor account
-            org.translator.xsd.generated.pain_001.CashAccount40 dbtrAcct =
-                new org.translator.xsd.generated.pain_001.CashAccount40();
-            org.translator.xsd.generated.pain_001.AccountIdentification4Choice dbtrAcctId =
-                new org.translator.xsd.generated.pain_001.AccountIdentification4Choice();
-            dbtrAcctId.setIBAN("DE89370400440532013000");
-            dbtrAcct.setId(dbtrAcctId);
-            pmtInf.setDbtrAcct(dbtrAcct);
-
-            // Create sample debtor agent
-            org.translator.xsd.generated.pain_001.BranchAndFinancialInstitutionIdentification8 dbtrAgt =
-                new org.translator.xsd.generated.pain_001.BranchAndFinancialInstitutionIdentification8();
-            org.translator.xsd.generated.pain_001.FinancialInstitutionIdentification23 finInstnId =
-                new org.translator.xsd.generated.pain_001.FinancialInstitutionIdentification23();
-            finInstnId.setBICFI("DEUTDEFF");
-            dbtrAgt.setFinInstnId(finInstnId);
-            pmtInf.setDbtrAgt(dbtrAgt);
-
-            // Add sample credit transfer transaction
-            List<org.translator.xsd.generated.pain_001.CreditTransferTransaction61> cdtTrfTxInf =
-                new java.util.ArrayList<>();
-            cdtTrfTxInf.add(createSampleCreditTransferTransaction());
-            pmtInf.setCdtTrfTxInf(cdtTrfTxInf);
-
-            return pmtInf;
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to create sample PaymentInstruction44", e);
+            Marshaller marshaller = pacs008Context.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+            StringWriter writer = new StringWriter();
+            marshaller.marshal(document, writer);
+            return writer.toString();
+        } catch (JAXBException e) {
+            logger.error("Failed to marshal PACS.008 document to XML", e);
+            return "Failed to marshal PACS.008: " + e.getMessage();
         }
     }
 
     /**
-     * Helper method to create a sample CreditTransferTransaction61
+     * Enhanced helper method to create a complete Pain.001 document with logging
      */
-    private org.translator.xsd.generated.pain_001.CreditTransferTransaction61 createSampleCreditTransferTransaction() {
-        org.translator.xsd.generated.pain_001.CreditTransferTransaction61 cdtTrfTx =
-            new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+    private org.translator.xsd.generated.pain_001.Document createCompletePain001Document() throws Exception {
+        org.translator.xsd.generated.pain_001.Document pain001Document = new org.translator.xsd.generated.pain_001.Document();
 
-        // Set payment identification
-        org.translator.xsd.generated.pain_001.PaymentIdentification6 pmtId =
-            new org.translator.xsd.generated.pain_001.PaymentIdentification6();
-        pmtId.setEndToEndId("E2E001");
-        cdtTrfTx.setPmtId(pmtId);
+        // Create Customer Credit Transfer Initiation
+        org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12 cstmrCdtTrfInitn =
+            new org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12();
 
-        // Set amount
-        org.translator.xsd.generated.pain_001.AmountType4Choice amt =
-            new org.translator.xsd.generated.pain_001.AmountType4Choice();
-        org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount instdAmt =
-            new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
-        instdAmt.setValue(new BigDecimal("100.00"));
-        instdAmt.setCcy("EUR");
+        // Create Group Header
+        org.translator.xsd.generated.pain_001.GroupHeader114 grpHdr = new org.translator.xsd.generated.pain_001.GroupHeader114();
+        grpHdr.setMsgId("PAIN001-TEST-" + System.currentTimeMillis());
+        grpHdr.setCreDtTm(datatypeFactory.newXMLGregorianCalendar("2025-08-16T10:30:00Z"));
+        grpHdr.setNbOfTxs("2");
+        grpHdr.setCtrlSum(new BigDecimal("1500.00"));
+
+        // Create Initiating Party
+        org.translator.xsd.generated.pain_001.PartyIdentification272 initgPty = new org.translator.xsd.generated.pain_001.PartyIdentification272();
+        initgPty.setNm("Test Initiating Party");
+        grpHdr.setInitgPty(initgPty);
+
+        cstmrCdtTrfInitn.setGrpHdr(grpHdr);
+
+        // Create Payment Instructions with transactions
+        List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new ArrayList<>();
+        org.translator.xsd.generated.pain_001.PaymentInstruction44 instruction = new org.translator.xsd.generated.pain_001.PaymentInstruction44();
+        instruction.setPmtInfId("PMT-INST-001");
+
+        // Create credit transfer transactions
+        org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx1 = createSampleCreditTransferTransaction("TX-001", "500.00", "EUR");
+        org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx2 = createSampleCreditTransferTransaction("TX-002", "1000.00", "EUR");
+
+        instruction.getCdtTrfTxInf().add(tx1);
+        instruction.getCdtTrfTxInf().add(tx2);
+        pmtInf.add(instruction);
+
+        cstmrCdtTrfInitn.getPmtInf().addAll(pmtInf);
+        pain001Document.setCstmrCdtTrfInitn(cstmrCdtTrfInitn);
+
+        return pain001Document;
+    }
+
+    /**
+     * Helper method to create a sample credit transfer transaction
+     */
+    private org.translator.xsd.generated.pain_001.CreditTransferTransaction61 createSampleCreditTransferTransaction(
+            String instrId, String amount, String currency) {
+
+        org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx = new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+
+        // Payment identification
+        org.translator.xsd.generated.pain_001.PaymentIdentification6 pmtId = new org.translator.xsd.generated.pain_001.PaymentIdentification6();
+        pmtId.setInstrId(instrId);
+        pmtId.setEndToEndId("E2E-" + instrId);
+        tx.setPmtId(pmtId);
+
+        // Amount
+        org.translator.xsd.generated.pain_001.AmountType4Choice amt = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+        org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount instdAmt = new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
+        instdAmt.setValue(new BigDecimal(amount));
+        instdAmt.setCcy(currency);
         amt.setInstdAmt(instdAmt);
-        cdtTrfTx.setAmt(amt);
+        tx.setAmt(amt);
 
-        // Create sample creditor
-        org.translator.xsd.generated.pain_001.PartyIdentification272 cdtr =
-            new org.translator.xsd.generated.pain_001.PartyIdentification272();
-        cdtr.setNm("Sample Creditor");
-        cdtTrfTx.setCdtr(cdtr);
+        // Charge bearer
+        tx.setChrgBr(org.translator.xsd.generated.pain_001.ChargeBearerType1Code.SLEV);
 
-        // Create sample creditor account
-        org.translator.xsd.generated.pain_001.CashAccount40 cdtrAcct =
-            new org.translator.xsd.generated.pain_001.CashAccount40();
-        org.translator.xsd.generated.pain_001.AccountIdentification4Choice cdtrAcctId =
-            new org.translator.xsd.generated.pain_001.AccountIdentification4Choice();
-        cdtrAcctId.setIBAN("FR1420041010050500013M02606");
-        cdtrAcct.setId(cdtrAcctId);
-        cdtTrfTx.setCdtrAcct(cdtrAcct);
+        // Creditor
+        org.translator.xsd.generated.pain_001.PartyIdentification272 cdtr = new org.translator.xsd.generated.pain_001.PartyIdentification272();
+        cdtr.setNm("Test Creditor Name");
+        tx.setCdtr(cdtr);
 
-        return cdtTrfTx;
+        return tx;
+    }
+
+    @Nested
+    @DisplayName("Document Level Mapping Tests")
+    class DocumentMappingTests {
+
+        @Test
+        @DisplayName("Should map Pain.001 Document to PACS.008 Document")
+        void testMapDocument() {
+            // Given
+            org.translator.xsd.generated.pain_001.Document pain001Document = new org.translator.xsd.generated.pain_001.Document();
+            org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12 cstmrCdtTrfInitn = new org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12();
+            pain001Document.setCstmrCdtTrfInitn(cstmrCdtTrfInitn);
+
+            // When
+            org.translator.xsd.generated.pacs_008.Document pacs008Document = mapper.mapDocument(pain001Document);
+
+            // Then
+            assertNotNull(pacs008Document);
+            assertNotNull(pacs008Document.getFIToFICstmrCdtTrf());
+            assertSame(cstmrCdtTrfInitn, pain001Document.getCstmrCdtTrfInitn());
+        }
+
+        @Test
+        @DisplayName("Should handle null document")
+        void testMapDocumentWithNull() {
+            // When/Then
+            assertDoesNotThrow(() -> {
+                org.translator.xsd.generated.pacs_008.Document result = mapper.mapDocument(null);
+                // MapStruct typically returns null for null input
+            });
+        }
+    }
+
+    @Nested
+    @DisplayName("Group Header Mapping Tests")
+    class GroupHeaderMappingTests {
+
+        @Test
+        @DisplayName("Should map all basic GroupHeader fields")
+        void testMapGroupHeaderBasicFields() throws Exception {
+            // Given
+            org.translator.xsd.generated.pain_001.GroupHeader114 pain001Header = new org.translator.xsd.generated.pain_001.GroupHeader114();
+            pain001Header.setMsgId("MSG123456");
+            pain001Header.setNbOfTxs("5");
+            pain001Header.setCtrlSum(new BigDecimal("1000.00"));
+
+            XMLGregorianCalendar creationTime = datatypeFactory.newXMLGregorianCalendar("2025-08-15T10:30:00Z");
+            pain001Header.setCreDtTm(creationTime);
+
+            // When
+            org.translator.xsd.generated.pacs_008.GroupHeader131 pacs008Header = mapper.mapGroupHeader(pain001Header);
+
+            // Then
+            assertNotNull(pacs008Header);
+            assertEquals("MSG123456", pacs008Header.getMsgId());
+            assertEquals("5", pacs008Header.getNbOfTxs());
+            assertEquals(new BigDecimal("1000.00"), pacs008Header.getCtrlSum());
+            assertEquals(creationTime, pacs008Header.getCreDtTm());
+        }
+
+        @Test
+        @DisplayName("Should derive batch booking as true")
+        void testDeriveBatchBooking() {
+            // Given
+            org.translator.xsd.generated.pain_001.GroupHeader114 source = new org.translator.xsd.generated.pain_001.GroupHeader114();
+
+            // When
+            Boolean result = mapper.deriveBatchBooking(source);
+
+            // Then
+            assertTrue(result);
+        }
+
+        @Test
+        @DisplayName("Should derive settlement date from creation date")
+        void testDeriveSettlementDate() throws Exception {
+            // Given
+            org.translator.xsd.generated.pain_001.GroupHeader114 source = new org.translator.xsd.generated.pain_001.GroupHeader114();
+            XMLGregorianCalendar creationTime = datatypeFactory.newXMLGregorianCalendar("2025-08-15T10:30:00Z");
+            source.setCreDtTm(creationTime);
+
+            // When
+            XMLGregorianCalendar result = mapper.deriveSettlementDate(source);
+
+            // Then
+            assertEquals(creationTime, result);
+        }
+
+        @Test
+        @DisplayName("Should create interbank amount from control sum")
+        void testCreateInterbankAmount() {
+            // Given
+            BigDecimal ctrlSum = new BigDecimal("1500.75");
+
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result = mapper.createInterbankAmount(ctrlSum);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(ctrlSum, result.getValue());
+            assertNull(result.getCcy()); // Should be null until derived from source
+        }
+
+        @Test
+        @DisplayName("Should handle null control sum")
+        void testCreateInterbankAmountWithNull() {
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result = mapper.createInterbankAmount(null);
+
+            // Then
+            assertNull(result);
+        }
+
+        @Test
+        @DisplayName("Should return null for payment type info in Phase 2")
+        void testDerivePaymentTypeInfo() {
+            // Given
+            org.translator.xsd.generated.pain_001.GroupHeader114 source = new org.translator.xsd.generated.pain_001.GroupHeader114();
+
+            // When
+            org.translator.xsd.generated.pacs_008.PaymentTypeInformation28 result = mapper.derivePaymentTypeInfo(source);
+
+            // Then
+            assertNull(result); // Should be null in Phase 2
+        }
+
+        @Test
+        @DisplayName("Should return null for settlement instruction in Phase 2")
+        void testCreateSettlementInstruction() {
+            // When
+            org.translator.xsd.generated.pacs_008.SettlementInstruction15 result = mapper.createSettlementInstruction();
+
+            // Then
+            assertNull(result); // Should be null until proper derivation logic
+        }
+    }
+
+    @Nested
+    @DisplayName("Credit Transfer Transaction Mapping Tests")
+    class CreditTransferTransactionMappingTests {
+
+        @Test
+        @DisplayName("Should map basic credit transfer transaction fields")
+        void testMapCreditTransferTransaction() {
+            // Given
+            org.translator.xsd.generated.pain_001.CreditTransferTransaction61 pain001Tx = new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+
+            // Setup payment identification
+            org.translator.xsd.generated.pain_001.PaymentIdentification6 pmtId = new org.translator.xsd.generated.pain_001.PaymentIdentification6();
+            pmtId.setInstrId("INSTR123");
+            pmtId.setEndToEndId("E2E456");
+            pain001Tx.setPmtId(pmtId);
+
+            // Setup amount
+            org.translator.xsd.generated.pain_001.AmountType4Choice amt = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+            org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount instdAmt = new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
+            instdAmt.setValue(new BigDecimal("500.00"));
+            instdAmt.setCcy("EUR");
+            amt.setInstdAmt(instdAmt);
+            pain001Tx.setAmt(amt);
+
+            // When
+            org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 pacs008Tx = mapper.mapCreditTransferTransaction(pain001Tx);
+
+            // Then
+            assertNotNull(pacs008Tx);
+            assertNotNull(pacs008Tx.getPmtId());
+            assertEquals("INSTR123", pacs008Tx.getPmtId().getInstrId());
+            assertEquals("E2E456", pacs008Tx.getPmtId().getEndToEndId());
+            assertNotNull(pacs008Tx.getInstdAmt());
+            assertEquals(new BigDecimal("500.00"), pacs008Tx.getInstdAmt().getValue());
+            assertEquals("EUR", pacs008Tx.getInstdAmt().getCcy());
+        }
+
+        @Test
+        @DisplayName("Should create interbank settlement amount from instructed amount")
+        void testCreateInterbankSettlementAmountFromInstructedAmount() {
+            // Given
+            org.translator.xsd.generated.pain_001.AmountType4Choice sourceAmount = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+            org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount instdAmt = new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
+            instdAmt.setValue(new BigDecimal("750.50"));
+            instdAmt.setCcy("USD");
+            sourceAmount.setInstdAmt(instdAmt);
+
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result =
+                mapper.createInterbankSettlementAmountFromSource(sourceAmount);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(new BigDecimal("750.50"), result.getValue());
+            assertEquals("USD", result.getCcy());
+        }
+
+        @Test
+        @DisplayName("Should create interbank settlement amount from equivalent amount")
+        void testCreateInterbankSettlementAmountFromEquivalentAmount() {
+            // Given
+            org.translator.xsd.generated.pain_001.AmountType4Choice sourceAmount = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+            org.translator.xsd.generated.pain_001.EquivalentAmount2 eqvtAmt = new org.translator.xsd.generated.pain_001.EquivalentAmount2();
+            org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount amt = new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
+            amt.setValue(new BigDecimal("1200.00"));
+            amt.setCcy("GBP");
+            eqvtAmt.setAmt(amt);
+            sourceAmount.setEqvtAmt(eqvtAmt);
+
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result =
+                mapper.createInterbankSettlementAmountFromSource(sourceAmount);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(new BigDecimal("1200.00"), result.getValue());
+            assertEquals("GBP", result.getCcy());
+        }
+
+        @Test
+        @DisplayName("Should return null for empty amount")
+        void testCreateInterbankSettlementAmountFromNullSource() {
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result =
+                mapper.createInterbankSettlementAmountFromSource(null);
+
+            // Then
+            assertNull(result);
+        }
+
+        @Test
+        @DisplayName("Should return null when no amount types are available")
+        void testCreateInterbankSettlementAmountFromEmptySource() {
+            // Given
+            org.translator.xsd.generated.pain_001.AmountType4Choice sourceAmount = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+            // No instructed amount or equivalent amount set
+
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result =
+                mapper.createInterbankSettlementAmountFromSource(sourceAmount);
+
+            // Then
+            assertNull(result);
+        }
+    }
+
+    @Nested
+    @DisplayName("Payment Instruction Mapping Tests")
+    class PaymentInstructionMappingTests {
+
+        @Test
+        @DisplayName("Should map payment instructions to credit transfer transactions")
+        void testMapPaymentInstructionsToCreditTransfers() {
+            // Given
+            List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new ArrayList<>();
+
+            org.translator.xsd.generated.pain_001.PaymentInstruction44 instruction = new org.translator.xsd.generated.pain_001.PaymentInstruction44();
+            List<org.translator.xsd.generated.pain_001.CreditTransferTransaction61> cdtTrfTxInf = new ArrayList<>();
+
+            org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx1 = new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+            org.translator.xsd.generated.pain_001.PaymentIdentification6 pmtId1 = new org.translator.xsd.generated.pain_001.PaymentIdentification6();
+            pmtId1.setInstrId("INSTR1");
+            tx1.setPmtId(pmtId1);
+            cdtTrfTxInf.add(tx1);
+
+            org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx2 = new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+            org.translator.xsd.generated.pain_001.PaymentIdentification6 pmtId2 = new org.translator.xsd.generated.pain_001.PaymentIdentification6();
+            pmtId2.setInstrId("INSTR2");
+            tx2.setPmtId(pmtId2);
+            cdtTrfTxInf.add(tx2);
+
+            instruction.getCdtTrfTxInf().addAll(cdtTrfTxInf);
+            pmtInf.add(instruction);
+
+            // When
+            List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> result = mapper.mapPaymentInstructionsToCreditTransfers(pmtInf);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(2, result.size());
+            assertEquals("INSTR1", result.get(0).getPmtId().getInstrId());
+            assertEquals("INSTR2", result.get(1).getPmtId().getInstrId());
+        }
+
+        @Test
+        @DisplayName("Should handle empty payment instructions list")
+        void testMapEmptyPaymentInstructions() {
+            // Given
+            List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new ArrayList<>();
+
+            // When
+            List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> result = mapper.mapPaymentInstructionsToCreditTransfers(pmtInf);
+
+            // Then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should handle null payment instructions list")
+        void testMapNullPaymentInstructions() {
+            // When
+            List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> result = mapper.mapPaymentInstructionsToCreditTransfers(null);
+
+            // Then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        }
+
+        @Test
+        @DisplayName("Should handle payment instruction with empty credit transfer transactions")
+        void testMapPaymentInstructionWithEmptyTransactions() {
+            // Given
+            List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new ArrayList<>();
+            org.translator.xsd.generated.pain_001.PaymentInstruction44 instruction = new org.translator.xsd.generated.pain_001.PaymentInstruction44();
+            // Leave credit transfer transactions list empty (it's initialized by default)
+            pmtInf.add(instruction);
+
+            // When
+            List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> result = mapper.mapPaymentInstructionsToCreditTransfers(pmtInf);
+
+            // Then
+            assertNotNull(result);
+            assertTrue(result.isEmpty());
+        }
+    }
+
+    @Nested
+    @DisplayName("Credit Transfer Initiation Mapping Tests")
+    class CreditTransferInitiationMappingTests {
+
+        @Test
+        @DisplayName("Should map credit transfer initiation")
+        void testMapCreditTransferInitiation() {
+            // Given
+            org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12 source = new org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12();
+
+            org.translator.xsd.generated.pain_001.GroupHeader114 grpHdr = new org.translator.xsd.generated.pain_001.GroupHeader114();
+            grpHdr.setMsgId("MSG789");
+            source.setGrpHdr(grpHdr);
+
+            List<org.translator.xsd.generated.pain_001.PaymentInstruction44> pmtInf = new ArrayList<>();
+            org.translator.xsd.generated.pain_001.PaymentInstruction44 instruction = new org.translator.xsd.generated.pain_001.PaymentInstruction44();
+            pmtInf.add(instruction);
+            source.getPmtInf().addAll(pmtInf);
+
+            // When
+            org.translator.xsd.generated.pacs_008.FIToFICustomerCreditTransferV13 result = mapper.mapCreditTransferInitiation(source);
+
+            // Then
+            assertNotNull(result);
+            assertNotNull(result.getGrpHdr());
+            assertEquals("MSG789", result.getGrpHdr().getMsgId());
+            assertNotNull(result.getCdtTrfTxInf());
+        }
+    }
+
+    @Nested
+    @DisplayName("Edge Cases and Error Handling")
+    class EdgeCasesTests {
+
+        @Test
+        @DisplayName("Should handle mapper instance creation")
+        void testMapperInstance() {
+            // When/Then
+            assertNotNull(Pain001ToPacs008Mapper.INSTANCE);
+            assertSame(Pain001ToPacs008Mapper.INSTANCE, Pain001ToPacs008Mapper.INSTANCE);
+        }
+
+        @Test
+        @DisplayName("Should handle credit transfer transaction with all optional fields")
+        void testMapCreditTransferTransactionWithOptionalFields() {
+            // Given
+            org.translator.xsd.generated.pain_001.CreditTransferTransaction61 pain001Tx = new org.translator.xsd.generated.pain_001.CreditTransferTransaction61();
+
+            // Set charge bearer
+            org.translator.xsd.generated.pain_001.ChargeBearerType1Code chrgBr = org.translator.xsd.generated.pain_001.ChargeBearerType1Code.SLEV;
+            pain001Tx.setChrgBr(chrgBr);
+
+            // When
+            org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 result = mapper.mapCreditTransferTransaction(pain001Tx);
+
+            // Then
+            assertNotNull(result);
+            // Compare enum values by name since they are different types but same values
+            assertEquals(chrgBr.name(), result.getChrgBr().name());
+        }
+
+        @Test
+        @DisplayName("Should handle alternative interbank settlement amount creation method")
+        void testCreateInterbankSettlementAmountAlternativeMethod() {
+            // Given
+            org.translator.xsd.generated.pain_001.AmountType4Choice sourceAmount = new org.translator.xsd.generated.pain_001.AmountType4Choice();
+            org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount instdAmt = new org.translator.xsd.generated.pain_001.ActiveOrHistoricCurrencyAndAmount();
+            instdAmt.setValue(new BigDecimal("999.99"));
+            instdAmt.setCcy("CHF");
+            sourceAmount.setInstdAmt(instdAmt);
+
+            // When
+            org.translator.xsd.generated.pacs_008.ActiveCurrencyAndAmount result =
+                mapper.createInterbankSettlementAmount(sourceAmount);
+
+            // Then
+            assertNotNull(result);
+            assertEquals(new BigDecimal("999.99"), result.getValue());
+            assertEquals("CHF", result.getCcy());
+        }
+    }
+
+    @Nested
+    @DisplayName("Enhanced Integration Tests with XML Logging")
+    class IntegrationTestsWithLogging {
+
+        @Test
+        @DisplayName("Complete Pain.001 to PACS.008 mapping with XML logging")
+        void testCompleteMappingWithXmlLogging() throws Exception {
+            logger.info("=== Starting Complete Pain.001 to PACS.008 Mapping Test ===");
+
+            // Given - Create a complete Pain.001 document
+            org.translator.xsd.generated.pain_001.Document pain001Document = createCompletePain001Document();
+
+            // Log the input Pain.001 XML
+            String pain001Xml = marshallPain001ToXml(pain001Document);
+            logger.info("Pain.001 Input XML:\n{}", pain001Xml);
+
+            // When - Perform the mapping
+            org.translator.xsd.generated.pacs_008.Document pacs008Document = mapper.mapDocument(pain001Document);
+
+            // Log the generated PACS.008 XML
+            String pacs008Xml = marshallPacs008ToXml(pacs008Document);
+            logger.info("PACS.008 Generated XML:\n{}", pacs008Xml);
+
+            // Then - Verify the mapping results
+            assertNotNull(pacs008Document, "PACS.008 document should not be null");
+            assertNotNull(pacs008Document.getFIToFICstmrCdtTrf(), "FI to FI customer credit transfer should not be null");
+
+            // Verify Group Header mapping
+            org.translator.xsd.generated.pacs_008.GroupHeader131 pacs008Header = pacs008Document.getFIToFICstmrCdtTrf().getGrpHdr();
+            assertNotNull(pacs008Header, "Group header should be mapped");
+            assertTrue(pacs008Header.getMsgId().startsWith("PAIN001-TEST-"), "Message ID should be preserved");
+            assertEquals("2", pacs008Header.getNbOfTxs(), "Number of transactions should be preserved");
+            assertEquals(new BigDecimal("1500.00"), pacs008Header.getCtrlSum(), "Control sum should be preserved");
+
+            // Verify business logic implementations
+            assertTrue(pacs008Header.isBtchBookg(), "Batch booking should be true");
+            assertNotNull(pacs008Header.getSttlmInf(), "Settlement information should be created");
+            assertNotNull(pacs008Header.getPmtTpInf(), "Payment type information should be created");
+            assertNotNull(pacs008Header.getTtlIntrBkSttlmAmt(), "Total interbank settlement amount should be derived");
+            assertEquals("EUR", pacs008Header.getTtlIntrBkSttlmAmt().getCcy(), "Currency should be EUR for SEPA");
+
+            // Verify Credit Transfer Transactions
+            List<org.translator.xsd.generated.pacs_008.CreditTransferTransaction70> transactions =
+                pacs008Document.getFIToFICstmrCdtTrf().getCdtTrfTxInf();
+            assertNotNull(transactions, "Credit transfer transactions should not be null");
+            assertEquals(2, transactions.size(), "Should have 2 transactions");
+
+            // Verify first transaction
+            org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 tx1 = transactions.get(0);
+            assertNotNull(tx1.getPmtId(), "Payment ID should be mapped");
+            assertEquals("TX-001", tx1.getPmtId().getInstrId(), "Instruction ID should be preserved");
+            assertEquals("E2E-TX-001", tx1.getPmtId().getEndToEndId(), "End-to-end ID should be preserved");
+            assertNotNull(tx1.getInstdAmt(), "Instructed amount should be mapped");
+            assertEquals(new BigDecimal("500.00"), tx1.getInstdAmt().getValue(), "Amount value should be preserved");
+            assertEquals("EUR", tx1.getInstdAmt().getCcy(), "Currency should be preserved");
+
+            // Verify business logic enhancements
+            assertNotNull(tx1.getIntrBkSttlmAmt(), "Interbank settlement amount should be derived");
+            assertNotNull(tx1.getSttlmPrty(), "Settlement priority should be set");
+            assertNotNull(tx1.getIntrBkSttlmDt(), "Settlement date should be derived");
+
+            logger.info("=== Complete Pain.001 to PACS.008 Mapping Test Completed Successfully ===");
+        }
+
+        @Test
+        @DisplayName("Test Group Header mapping with detailed XML logging")
+        void testGroupHeaderMappingWithLogging() throws Exception {
+            logger.info("=== Starting Group Header Mapping Test with XML Logging ===");
+
+            // Given - Create a Pain.001 Group Header
+            org.translator.xsd.generated.pain_001.GroupHeader114 pain001Header = new org.translator.xsd.generated.pain_001.GroupHeader114();
+            pain001Header.setMsgId("MSG-HEADER-TEST-" + System.currentTimeMillis());
+            pain001Header.setCreDtTm(datatypeFactory.newXMLGregorianCalendar("2025-08-16T15:45:30Z"));
+            pain001Header.setNbOfTxs("3");
+            pain001Header.setCtrlSum(new BigDecimal("2500.75"));
+
+            // Create initiating party
+            org.translator.xsd.generated.pain_001.PartyIdentification272 initgPty = new org.translator.xsd.generated.pain_001.PartyIdentification272();
+            initgPty.setNm("Test Initiating Party for Logging");
+            pain001Header.setInitgPty(initgPty);
+
+            logger.info("Pain.001 Group Header Input:");
+            logger.info("  - Message ID: {}", pain001Header.getMsgId());
+            logger.info("  - Creation Date/Time: {}", pain001Header.getCreDtTm());
+            logger.info("  - Number of Transactions: {}", pain001Header.getNbOfTxs());
+            logger.info("  - Control Sum: {}", pain001Header.getCtrlSum());
+
+            // When - Map the group header
+            org.translator.xsd.generated.pacs_008.GroupHeader131 pacs008Header = mapper.mapGroupHeader(pain001Header);
+
+            // Log the PACS.008 Group Header results
+            logger.info("PACS.008 Group Header Output:");
+            logger.info("  - Message ID: {}", pacs008Header.getMsgId());
+            logger.info("  - Creation Date/Time: {}", pacs008Header.getCreDtTm());
+            logger.info("  - Number of Transactions: {}", pacs008Header.getNbOfTxs());
+            logger.info("  - Control Sum: {}", pacs008Header.getCtrlSum());
+            logger.info("  - Batch Booking: {}", pacs008Header.isBtchBookg());
+            logger.info("  - Settlement Method: {}", pacs008Header.getSttlmInf() != null ? pacs008Header.getSttlmInf().getSttlmMtd() : "null");
+            logger.info("  - Payment Type Priority: {}", pacs008Header.getPmtTpInf() != null ? pacs008Header.getPmtTpInf().getInstrPrty() : "null");
+            logger.info("  - Total Interbank Settlement Amount: {} {}",
+                pacs008Header.getTtlIntrBkSttlmAmt() != null ? pacs008Header.getTtlIntrBkSttlmAmt().getValue() : "null",
+                pacs008Header.getTtlIntrBkSttlmAmt() != null ? pacs008Header.getTtlIntrBkSttlmAmt().getCcy() : "");
+
+            // Then - Verify all mappings and business logic
+            assertNotNull(pacs008Header, "PACS.008 header should not be null");
+            assertEquals(pain001Header.getMsgId(), pacs008Header.getMsgId(), "Message ID should be preserved");
+            assertEquals(pain001Header.getCreDtTm(), pacs008Header.getCreDtTm(), "Creation date/time should be preserved");
+            assertEquals(pain001Header.getNbOfTxs(), pacs008Header.getNbOfTxs(), "Number of transactions should be preserved");
+            assertEquals(pain001Header.getCtrlSum(), pacs008Header.getCtrlSum(), "Control sum should be preserved");
+
+            // Verify business logic enhancements
+            assertTrue(pacs008Header.isBtchBookg(), "Batch booking should be set to true");
+            assertNotNull(pacs008Header.getSttlmInf(), "Settlement information should be created");
+            assertEquals(org.translator.xsd.generated.pacs_008.SettlementMethod1Code.CLRG,
+                pacs008Header.getSttlmInf().getSttlmMtd(), "Settlement method should be CLRG");
+            assertNotNull(pacs008Header.getPmtTpInf(), "Payment type information should be created");
+            assertEquals(org.translator.xsd.generated.pacs_008.Priority2Code.NORM,
+                pacs008Header.getPmtTpInf().getInstrPrty(), "Instruction priority should be NORM");
+            assertNotNull(pacs008Header.getTtlIntrBkSttlmAmt(), "Total interbank settlement amount should be calculated");
+            assertEquals(pain001Header.getCtrlSum(), pacs008Header.getTtlIntrBkSttlmAmt().getValue(),
+                "Total settlement amount should equal control sum");
+            assertEquals("EUR", pacs008Header.getTtlIntrBkSttlmAmt().getCcy(), "Currency should be EUR for SEPA");
+
+            logger.info("=== Group Header Mapping Test Completed Successfully ===");
+        }
+
+        @Test
+        @DisplayName("Test Credit Transfer Transaction mapping with detailed logging")
+        void testCreditTransferTransactionMappingWithLogging() throws Exception {
+            logger.info("=== Starting Credit Transfer Transaction Mapping Test with XML Logging ===");
+
+            // Given - Create a complete Pain.001 credit transfer transaction
+            org.translator.xsd.generated.pain_001.CreditTransferTransaction61 pain001Tx =
+                createSampleCreditTransferTransaction("LOG-TEST-001", "750.25", "USD");
+
+            logger.info("Pain.001 Credit Transfer Transaction Input:");
+            logger.info("  - Instruction ID: {}", pain001Tx.getPmtId().getInstrId());
+            logger.info("  - End-to-End ID: {}", pain001Tx.getPmtId().getEndToEndId());
+            logger.info("  - Amount: {} {}",
+                pain001Tx.getAmt().getInstdAmt().getValue(),
+                pain001Tx.getAmt().getInstdAmt().getCcy());
+            logger.info("  - Charge Bearer: {}", pain001Tx.getChrgBr());
+
+            // When - Map the transaction
+            org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 pacs008Tx =
+                mapper.mapCreditTransferTransaction(pain001Tx);
+
+            // Log the PACS.008 transaction results
+            logger.info("PACS.008 Credit Transfer Transaction Output:");
+            logger.info("  - Instruction ID: {}", pacs008Tx.getPmtId().getInstrId());
+            logger.info("  - End-to-End ID: {}", pacs008Tx.getPmtId().getEndToEndId());
+            logger.info("  - Instructed Amount: {} {}",
+                pacs008Tx.getInstdAmt().getValue(),
+                pacs008Tx.getInstdAmt().getCcy());
+            logger.info("  - Interbank Settlement Amount: {} {}",
+                pacs008Tx.getIntrBkSttlmAmt() != null ? pacs008Tx.getIntrBkSttlmAmt().getValue() : "null",
+                pacs008Tx.getIntrBkSttlmAmt() != null ? pacs008Tx.getIntrBkSttlmAmt().getCcy() : "");
+            logger.info("  - Settlement Priority: {}", pacs008Tx.getSttlmPrty());
+            logger.info("  - Settlement Date: {}", pacs008Tx.getIntrBkSttlmDt());
+            logger.info("  - Charge Bearer: {}", pacs008Tx.getChrgBr());
+            logger.info("  - Charges Info Count: {}",
+                pacs008Tx.getChrgsInf() != null ? pacs008Tx.getChrgsInf().size() : 0);
+
+            // Then - Verify all mappings and business logic
+            assertNotNull(pacs008Tx, "PACS.008 transaction should not be null");
+
+            // Verify basic mappings
+            assertEquals("LOG-TEST-001", pacs008Tx.getPmtId().getInstrId(), "Instruction ID should be preserved");
+            assertEquals("E2E-LOG-TEST-001", pacs008Tx.getPmtId().getEndToEndId(), "End-to-end ID should be preserved");
+            assertEquals(new BigDecimal("750.25"), pacs008Tx.getInstdAmt().getValue(), "Instructed amount should be preserved");
+            assertEquals("USD", pacs008Tx.getInstdAmt().getCcy(), "Currency should be preserved");
+
+            // Verify business logic enhancements
+            assertNotNull(pacs008Tx.getIntrBkSttlmAmt(), "Interbank settlement amount should be derived");
+            assertEquals(new BigDecimal("750.25"), pacs008Tx.getIntrBkSttlmAmt().getValue(),
+                "Interbank settlement amount should match instructed amount");
+            assertEquals("USD", pacs008Tx.getIntrBkSttlmAmt().getCcy(),
+                "Interbank settlement currency should match instructed currency");
+            assertEquals(org.translator.xsd.generated.pacs_008.Priority3Code.NORM, pacs008Tx.getSttlmPrty(),
+                "Settlement priority should be NORM");
+            assertNotNull(pacs008Tx.getIntrBkSttlmDt(), "Interbank settlement date should be set");
+            assertEquals(pain001Tx.getChrgBr().name(), pacs008Tx.getChrgBr().name(),
+                "Charge bearer should be preserved (by name)");
+            assertNotNull(pacs008Tx.getChrgsInf(), "Charges information should be created");
+            assertEquals(1, pacs008Tx.getChrgsInf().size(), "Should have one charge entry");
+
+            logger.info("=== Credit Transfer Transaction Mapping Test Completed Successfully ===");
+        }
+
+        @Test
+        @DisplayName("Performance test with XML logging for multiple transactions")
+        void testPerformanceWithXmlLogging() throws Exception {
+            logger.info("=== Starting Performance Test with XML Logging ===");
+
+            long startTime = System.currentTimeMillis();
+
+            // Given - Create a Pain.001 document with multiple transactions
+            org.translator.xsd.generated.pain_001.Document pain001Document = new org.translator.xsd.generated.pain_001.Document();
+            org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12 cstmrCdtTrfInitn =
+                new org.translator.xsd.generated.pain_001.CustomerCreditTransferInitiationV12();
+
+            // Create group header
+            org.translator.xsd.generated.pain_001.GroupHeader114 grpHdr = new org.translator.xsd.generated.pain_001.GroupHeader114();
+            grpHdr.setMsgId("PERF-TEST-" + System.currentTimeMillis());
+            grpHdr.setCreDtTm(datatypeFactory.newXMLGregorianCalendar("2025-08-16T16:00:00Z"));
+            grpHdr.setNbOfTxs("10");
+            grpHdr.setCtrlSum(new BigDecimal("10000.00"));
+            cstmrCdtTrfInitn.setGrpHdr(grpHdr);
+
+            // Create payment instruction with 10 transactions
+            org.translator.xsd.generated.pain_001.PaymentInstruction44 instruction = new org.translator.xsd.generated.pain_001.PaymentInstruction44();
+            instruction.setPmtInfId("PERF-PMT-INST-001");
+
+            for (int i = 1; i <= 10; i++) {
+                org.translator.xsd.generated.pain_001.CreditTransferTransaction61 tx =
+                    createSampleCreditTransferTransaction("PERF-TX-" + String.format("%03d", i), "1000.00", "EUR");
+                instruction.getCdtTrfTxInf().add(tx);
+            }
+
+            cstmrCdtTrfInitn.getPmtInf().add(instruction);
+            pain001Document.setCstmrCdtTrfInitn(cstmrCdtTrfInitn);
+
+            long setupTime = System.currentTimeMillis();
+            logger.info("Test setup completed in {} ms", setupTime - startTime);
+
+            // When - Perform the mapping
+            long mappingStartTime = System.currentTimeMillis();
+            org.translator.xsd.generated.pacs_008.Document pacs008Document = mapper.mapDocument(pain001Document);
+            long mappingEndTime = System.currentTimeMillis();
+
+            logger.info("Mapping completed in {} ms", mappingEndTime - mappingStartTime);
+
+            // Log XML sizes
+            String pain001Xml = marshallPain001ToXml(pain001Document);
+            String pacs008Xml = marshallPacs008ToXml(pacs008Document);
+
+            logger.info("Pain.001 XML size: {} characters", pain001Xml.length());
+            logger.info("PACS.008 XML size: {} characters", pacs008Xml.length());
+            logger.info("Pain.001 XML (first 500 chars):\n{}", pain001Xml.substring(0, Math.min(500, pain001Xml.length())));
+            logger.info("PACS.008 XML (first 500 chars):\n{}", pacs008Xml.substring(0, Math.min(500, pacs008Xml.length())));
+
+            // Then - Verify results
+            assertNotNull(pacs008Document, "PACS.008 document should not be null");
+            assertEquals(10, pacs008Document.getFIToFICstmrCdtTrf().getCdtTrfTxInf().size(),
+                "Should have 10 mapped transactions");
+
+            long totalTime = System.currentTimeMillis() - startTime;
+            logger.info("=== Performance Test Completed in {} ms ===", totalTime);
+
+            // Performance assertion - mapping should complete within reasonable time
+            assertTrue(mappingEndTime - mappingStartTime < 1000,
+                "Mapping 10 transactions should complete within 1 second");
+        }
     }
 }
