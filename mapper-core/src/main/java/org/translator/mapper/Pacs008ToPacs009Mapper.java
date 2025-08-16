@@ -15,7 +15,7 @@ public interface Pacs008ToPacs009Mapper {
 
     Pacs008ToPacs009Mapper INSTANCE = Mappers.getMapper(Pacs008ToPacs009Mapper.class);
 
-    // Top-level document mapping
+    // Top-level document mapping for generated XSD classes
     @Mapping(source = "FIToFICstmrCdtTrf", target = "FICdtTrf")
     org.translator.xsd.generated.pacs_009.Document mapDocument(org.translator.xsd.generated.pacs_008.Document source);
 

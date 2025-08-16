@@ -2,17 +2,18 @@ package org.translator;
 
 import org.junit.jupiter.api.Test;
 import org.translator.mapper.Pacs008ToPacs009Mapper;
+import org.translator.mapper.ProwideSwiftToPacs008Converter;
 
 public class PrintMappedFieldsTest {
 
     @Test
     public void printMappedFields() throws Exception {
-        com.prowidesoftware.swift.model.mx.dic.Pacs00800101 src = new com.prowidesoftware.swift.model.mx.dic.Pacs00800101();
+        com.prowidesoftware.swift.model.mx.dic.Pacs00800101 prowideMsg = new com.prowidesoftware.swift.model.mx.dic.Pacs00800101();
         com.prowidesoftware.swift.model.mx.dic.GroupHeader2 gh = new com.prowidesoftware.swift.model.mx.dic.GroupHeader2();
         gh.setMsgId("MSG-PRINT");
         gh.setCreDtTm(java.time.OffsetDateTime.parse("2025-08-15T12:00:00Z"));
         gh.setNbOfTxs("1");
-        src.setGrpHdr(gh);
+        prowideMsg.setGrpHdr(gh);
 
         com.prowidesoftware.swift.model.mx.dic.CreditTransferTransactionInformation2 tx = new com.prowidesoftware.swift.model.mx.dic.CreditTransferTransactionInformation2();
         com.prowidesoftware.swift.model.mx.dic.PaymentIdentification2 pmt = new com.prowidesoftware.swift.model.mx.dic.PaymentIdentification2();
@@ -22,21 +23,11 @@ public class PrintMappedFieldsTest {
         // debtor party with org id
         com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 dbtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
         dbtr.setNm("Debtor Name");
-        com.prowidesoftware.swift.model.mx.dic.Party2Choice dbtrIdChoice = new com.prowidesoftware.swift.model.mx.dic.Party2Choice();
-        com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2 dbOrg = new com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2();
-        dbOrg.setBkPtyId("DBBK-1");
-        dbtrIdChoice.setOrgId(dbOrg);
-        dbtr.setId(dbtrIdChoice);
         tx.setDbtr(dbtr);
 
         // creditor party with org id
         com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 cdtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
         cdtr.setNm("Creditor Name");
-        com.prowidesoftware.swift.model.mx.dic.Party2Choice cdtrIdChoice = new com.prowidesoftware.swift.model.mx.dic.Party2Choice();
-        com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2 cdtrOrg = new com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2();
-        cdtrOrg.setBkPtyId("CDBK-123");
-        cdtrIdChoice.setOrgId(cdtrOrg);
-        cdtr.setId(cdtrIdChoice);
         tx.setCdtr(cdtr);
 
         // debtor account IBAN
@@ -49,11 +40,15 @@ public class PrintMappedFieldsTest {
         acct.setId(aid);
         tx.setDbtrAcct(acct);
 
-        src.getCdtTrfTxInf().add(tx);
+        prowideMsg.getCdtTrfTxInf().add(tx);
 
-        com.prowidesoftware.swift.model.mx.dic.Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+        // Convert Prowide SWIFT to XSD Document first
+        org.translator.xsd.generated.pacs_008.Document xsdDocument = ProwideSwiftToPacs008Converter.convert(prowideMsg);
 
-        System.out.println("=== Mapped Pacs00900101 ===");
+        // Then map XSD Document to PACS.009
+        org.translator.xsd.generated.pacs_009.Document mapped = Pacs008ToPacs009Mapper.INSTANCE.mapDocument(xsdDocument);
+
+        System.out.println("=== Mapped PACS.009 Document ===");
         printObject("Document", mapped, new java.util.IdentityHashMap<>());
     }
 

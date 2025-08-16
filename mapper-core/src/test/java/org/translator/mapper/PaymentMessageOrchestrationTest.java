@@ -225,10 +225,9 @@ class PaymentMessageOrchestrationTest {
         groupHeader.setNbOfTxs("1");
         initiation.setGrpHdr(groupHeader);
 
-        List<PaymentInstruction44> paymentInstructions = new ArrayList<>();
+        // Fix: Use getPmtInf().add() instead of setPmtInf() since there's no setter method
         PaymentInstruction44 paymentInstruction = new PaymentInstruction44();
-        paymentInstructions.add(paymentInstruction);
-        initiation.setPmtInf(paymentInstructions);
+        initiation.getPmtInf().add(paymentInstruction);
 
         document.setCstmrCdtTrfInitn(initiation);
         return document;
@@ -236,11 +235,27 @@ class PaymentMessageOrchestrationTest {
 
     private org.translator.xsd.generated.pacs_008.Document createValidPacs008Document() {
         org.translator.xsd.generated.pacs_008.Document document = new org.translator.xsd.generated.pacs_008.Document();
-        FIToFICustomerCreditTransferV13 transfer = new FIToFICustomerCreditTransferV13();
+        org.translator.xsd.generated.pacs_008.FIToFICustomerCreditTransferV13 transfer = new org.translator.xsd.generated.pacs_008.FIToFICustomerCreditTransferV13();
 
-        GroupHeader131 groupHeader = new GroupHeader131();
+        org.translator.xsd.generated.pacs_008.GroupHeader131 groupHeader = new org.translator.xsd.generated.pacs_008.GroupHeader131();
         groupHeader.setMsgId("TEST-MSG-002");
+        groupHeader.setNbOfTxs("1");
+
+        // Create required settlement information
+        org.translator.xsd.generated.pacs_008.SettlementInstruction15 settlementInf = new org.translator.xsd.generated.pacs_008.SettlementInstruction15();
+        groupHeader.setSttlmInf(settlementInf);
+
         transfer.setGrpHdr(groupHeader);
+
+        // Add at least one credit transfer transaction to make it valid
+        org.translator.xsd.generated.pacs_008.CreditTransferTransaction70 transaction = new org.translator.xsd.generated.pacs_008.CreditTransferTransaction70();
+
+        // Create payment identification
+        org.translator.xsd.generated.pacs_008.PaymentIdentification13 pmtId = new org.translator.xsd.generated.pacs_008.PaymentIdentification13();
+        pmtId.setEndToEndId("TEST-E2E-001");
+        transaction.setPmtId(pmtId);
+
+        transfer.getCdtTrfTxInf().add(transaction);
 
         document.setFIToFICstmrCdtTrf(transfer);
         return document;
@@ -254,7 +269,23 @@ class PaymentMessageOrchestrationTest {
         org.translator.xsd.generated.pacs_009.GroupHeader131 groupHeader =
             new org.translator.xsd.generated.pacs_009.GroupHeader131();
         groupHeader.setMsgId("TEST-MSG-003");
+        groupHeader.setNbOfTxs("1");
+
+        // Create required settlement information
+        org.translator.xsd.generated.pacs_009.SettlementInstruction15 settlementInf = new org.translator.xsd.generated.pacs_009.SettlementInstruction15();
+        groupHeader.setSttlmInf(settlementInf);
+
         transfer.setGrpHdr(groupHeader);
+
+        // Add at least one credit transfer transaction to make it valid
+        org.translator.xsd.generated.pacs_009.CreditTransferTransaction67 transaction = new org.translator.xsd.generated.pacs_009.CreditTransferTransaction67();
+
+        // Create payment identification
+        org.translator.xsd.generated.pacs_009.PaymentIdentification13 pmtId = new org.translator.xsd.generated.pacs_009.PaymentIdentification13();
+        pmtId.setEndToEndId("TEST-E2E-001");
+        transaction.setPmtId(pmtId);
+
+        transfer.getCdtTrfTxInf().add(transaction);
 
         document.setFICdtTrf(transfer);
         return document;

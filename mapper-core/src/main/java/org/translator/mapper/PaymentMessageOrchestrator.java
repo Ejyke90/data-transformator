@@ -50,13 +50,27 @@ public class PaymentMessageOrchestrator {
     public <SOURCE, TARGET> TARGET transform(SOURCE source, String sourceType, String targetType)
             throws PaymentMappingException {
 
+        // Validate source message is not null
+        if (source == null) {
+            throw new PaymentMappingException(
+                "Source message cannot be null",
+                sourceType,
+                targetType,
+                "NULL_SOURCE",
+                null
+            );
+        }
+
+        // Validate source document structure for specific message types
+        validateSourceDocument(source, sourceType);
+
         String mapperKey = createMapperKey(sourceType, targetType);
         PaymentMessageMapper<SOURCE, TARGET> mapper =
             (PaymentMessageMapper<SOURCE, TARGET>) mappers.get(mapperKey);
 
         if (mapper == null) {
             throw new PaymentMappingException(
-                "No mapper found for transformation",
+                "No mapper found for transformation from " + sourceType + " to " + targetType,
                 sourceType,
                 targetType,
                 "MAPPER_NOT_FOUND",
@@ -77,7 +91,54 @@ public class PaymentMessageOrchestrator {
         logger.debug("Performing transformation {} -> {} using {}",
                     sourceType, targetType, mapper.getClass().getSimpleName());
 
-        return mapper.transform(source);
+        try {
+            return mapper.transform(source);
+        } catch (Exception e) {
+            throw new PaymentMappingException(
+                "Failed to transform " + sourceType + " to " + targetType + ": " + e.getMessage(),
+                sourceType,
+                targetType,
+                "MAPSTRUCT_ERROR",
+                e
+            );
+        }
+    }
+
+    /**
+     * Validate source document structure based on message type.
+     *
+     * @param source The source document to validate
+     * @param sourceType The source message type
+     * @throws PaymentMappingException if validation fails
+     */
+    private <SOURCE> void validateSourceDocument(SOURCE source, String sourceType) throws PaymentMappingException {
+        if ("pain.001.001.12".equals(sourceType)) {
+            validatePain001Document(source);
+        }
+        // Add other message type validations as needed
+    }
+
+    /**
+     * Validate Pain.001 document structure.
+     *
+     * @param source The source document
+     * @throws PaymentMappingException if validation fails
+     */
+    private <SOURCE> void validatePain001Document(SOURCE source) throws PaymentMappingException {
+        if (source instanceof org.translator.xsd.generated.pain_001.Document) {
+            org.translator.xsd.generated.pain_001.Document pain001Doc =
+                (org.translator.xsd.generated.pain_001.Document) source;
+
+            if (pain001Doc.getCstmrCdtTrfInitn() == null) {
+                throw new PaymentMappingException(
+                    "Invalid Pain.001 structure: missing CustomerCreditTransferInitiation",
+                    "pain.001.001.12",
+                    "unknown",
+                    "INVALID_PAIN001_STRUCTURE",
+                    null
+                );
+            }
+        }
     }
 
     /**
