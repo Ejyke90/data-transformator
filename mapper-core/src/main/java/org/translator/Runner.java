@@ -1,219 +1,152 @@
 package org.translator;
 
-import org.translator.mapper.Pacs008ToPacs009Mapper;
+import org.translator.mapper.PaymentMessageOrchestrator;
+import org.translator.mapper.PaymentMappingConfiguration;
+import org.translator.mapper.ProwideSwiftToPacs008Converter;
+import org.translator.mapper.XmlMarshallingUtil;
+import org.translator.mapper.PaymentMappingException;
 
 import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
 import com.prowidesoftware.swift.model.mx.dic.CreditTransferTransactionInformation2;
 import com.prowidesoftware.swift.model.mx.dic.PaymentIdentification2;
 
-// Use our generated classes for missing ProWide types
+// Use our generated classes
 import org.translator.xsd.generated.pacs_008.PersonIdentification18;
 import org.translator.xsd.generated.pacs_008.GenericPersonIdentification2;
 
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBElement;
-import jakarta.xml.bind.Marshaller;
-import javax.xml.namespace.QName;
-
-import java.io.StringWriter;
-
 public class Runner {
     public static void main(String[] args) throws Exception {
-    Pacs00800101 src = new Pacs00800101();
-    // group header with settlement info
-    com.prowidesoftware.swift.model.mx.dic.GroupHeader2 gh = new com.prowidesoftware.swift.model.mx.dic.GroupHeader2();
-    gh.setMsgId("RUN-MSG-1");
-    gh.setCreDtTm(java.time.OffsetDateTime.parse("2025-08-15T12:00:00Z"));
-    gh.setNbOfTxs("1");
-    com.prowidesoftware.swift.model.mx.dic.SettlementInformation1 st = new com.prowidesoftware.swift.model.mx.dic.SettlementInformation1();
-    st.setSttlmMtd(com.prowidesoftware.swift.model.mx.dic.SettlementMethod1Code.CLRG);
-    gh.setSttlmInf(st);
-    // amounts on header (use ActiveCurrencyAndAmount wrapper)
-    com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount ttlAmt = new com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount();
-    ttlAmt.setValue(new java.math.BigDecimal("1000.00"));
-    ttlAmt.setCcy("EUR");
-    gh.setTtlIntrBkSttlmAmt(ttlAmt);
-    gh.setCtrlSum(new java.math.BigDecimal("1000.00"));
-    src.setGrpHdr(gh);
+        System.out.println("=== Payment Message Transformation Demo ===");
 
-    CreditTransferTransactionInformation2 tx = new CreditTransferTransactionInformation2();
+        // Build ProwideSwift PACS.008 message (existing code)
+        Pacs00800101 prowideMsg = buildProwideSwiftPacs008Message();
+
+        System.out.println("1. Built ProwideSwift PACS.008 message");
+
+        // Convert ProwideSwift to our generated XSD classes
+        org.translator.xsd.generated.pacs_008.Document pacs008Document = ProwideSwiftToPacs008Converter.convert(prowideMsg);
+        System.out.println("2. Converted ProwideSwift message to generated XSD classes");
+
+        // Marshal PACS.008 to XML and save
+        String pacs008Xml = XmlMarshallingUtil.marshalAndPrettyPrintPacs008(pacs008Document, "pacs008_original.xml");
+        System.out.println("3. Marshalled PACS.008 to XML");
+
+        // Use orchestrator for transformation
+        PaymentMessageOrchestrator orchestrator = PaymentMappingConfiguration.createPaymentMessageOrchestrator();
+        System.out.println("4. Created payment message orchestrator");
+
+        try {
+            // Transform PACS.008 to PACS.009 using orchestrator
+            org.translator.xsd.generated.pacs_009.Document pacs009Document = orchestrator.transform(
+                pacs008Document,
+                "pacs.008.001.13",
+                "pacs.009.001.12"
+            );
+            System.out.println("5. Successfully transformed PACS.008 to PACS.009 using orchestrator");
+
+            // Marshal PACS.009 to XML and save
+            String pacs009Xml = XmlMarshallingUtil.marshalAndPrettyPrintPacs009(pacs009Document, "pacs009_transformed.xml");
+            System.out.println("6. Marshalled PACS.009 to XML");
+
+            // Display transformation results
+            System.out.println("\n=== Transformation Summary ===");
+            System.out.println("Input: ProwideSwift PACS.008 message");
+            System.out.println("Output: Generated XSD PACS.009 message");
+            System.out.println("Files created:");
+            System.out.println("  - build/outputs/pacs008_original.xml");
+            System.out.println("  - build/outputs/pacs009_transformed.xml");
+
+            // Show supported transformations
+            System.out.println("\n=== Available Transformations ===");
+            orchestrator.getSupportedTransformations().forEach(transformation ->
+                System.out.println("  - " + transformation));
+
+        } catch (PaymentMappingException e) {
+            System.err.println("Transformation failed: " + e.getMessage());
+            System.err.println("Error code: " + e.getErrorCode());
+            System.err.println("Source type: " + e.getSourceMessageType());
+            System.err.println("Target type: " + e.getTargetMessageType());
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Build a sample ProwideSwift PACS.008 message for demonstration.
+     */
+    private static Pacs00800101 buildProwideSwiftPacs008Message() throws Exception {
+        Pacs00800101 src = new Pacs00800101();
+
+        // Group header with settlement info
+        com.prowidesoftware.swift.model.mx.dic.GroupHeader2 gh = new com.prowidesoftware.swift.model.mx.dic.GroupHeader2();
+        gh.setMsgId("RUN-MSG-1");
+        gh.setCreDtTm(java.time.OffsetDateTime.parse("2025-08-15T12:00:00Z"));
+        gh.setNbOfTxs("1");
+
+        com.prowidesoftware.swift.model.mx.dic.SettlementInformation1 st = new com.prowidesoftware.swift.model.mx.dic.SettlementInformation1();
+        st.setSttlmMtd(com.prowidesoftware.swift.model.mx.dic.SettlementMethod1Code.CLRG);
+        gh.setSttlmInf(st);
+
+        // Amounts on header
+        com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount ttlAmt = new com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount();
+        ttlAmt.setValue(new java.math.BigDecimal("1000.00"));
+        ttlAmt.setCcy("EUR");
+        gh.setTtlIntrBkSttlmAmt(ttlAmt);
+        gh.setCtrlSum(new java.math.BigDecimal("1000.00"));
+        src.setGrpHdr(gh);
+
+        // Credit transfer transaction
+        CreditTransferTransactionInformation2 tx = new CreditTransferTransactionInformation2();
+
+        // Payment identification
         PaymentIdentification2 pmtId = new PaymentIdentification2();
         pmtId.setEndToEndId("RUN-E2E-1");
+        pmtId.setInstrId("RUN-INSTR-1");
+        pmtId.setTxId("RUN-TX-1");
         tx.setPmtId(pmtId);
+
+        // Debtor account
         com.prowidesoftware.swift.model.mx.dic.CashAccount7 acct = new com.prowidesoftware.swift.model.mx.dic.CashAccount7();
         com.prowidesoftware.swift.model.mx.dic.AccountIdentification3Choice id = new com.prowidesoftware.swift.model.mx.dic.AccountIdentification3Choice();
         id.setIBAN("NL91ABNA0417164300");
         acct.setId(id);
         tx.setDbtrAcct(acct);
-        // set intrbk settlement amount on transaction (ActiveCurrencyAndAmount)
+
+        // Transaction amount
         com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount txAmt = new com.prowidesoftware.swift.model.mx.dic.CurrencyAndAmount();
         txAmt.setValue(new java.math.BigDecimal("1000.00"));
         txAmt.setCcy("EUR");
         tx.setIntrBkSttlmAmt(txAmt);
-    // debtor party with org id (BIC and proprietary id) to exercise finInstnId mapping
-    com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 dbtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
-    dbtr.setNm("Runner Debtor Ltd");
-    com.prowidesoftware.swift.model.mx.dic.Party2Choice p2 = new com.prowidesoftware.swift.model.mx.dic.Party2Choice();
-    com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2 org = new com.prowidesoftware.swift.model.mx.dic.OrganisationIdentification2();
-    org.setBIC("RUNBICXXXX");
-    com.prowidesoftware.swift.model.mx.dic.GenericIdentification3 pr = new com.prowidesoftware.swift.model.mx.dic.GenericIdentification3();
-    pr.setId("RUN-ORG-PRTRY");
-    org.setPrtryId(pr);
-    p2.setOrgId(org);
-    // add a private id (PrvtId) with multiple Othr entries to exercise aggregation
-    PersonIdentification18 prvt = new PersonIdentification18();
-    GenericPersonIdentification2 gp1 = new GenericPersonIdentification2();
-    gp1.setId("PRV-ONE-123");
-    org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice sch1 = new org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice();
-    sch1.setPrtry("PRV-SCHEME-A");
-    gp1.setSchmeNm(sch1);
-    prvt.getOthr().add(gp1);
-    GenericPersonIdentification2 gp2 = new GenericPersonIdentification2();
-    gp2.setId("PRV-TWO-456");
-    org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice sch2 = new org.translator.xsd.generated.pacs_008.PersonIdentificationSchemeName1Choice();
-    sch2.setPrtry("PRV-SCHEME-B");
-    gp2.setSchmeNm(sch2);
-    prvt.getOthr().add(gp2);
-    // set via reflection in case the generated API differs between pw versions
-    try {
-        java.lang.reflect.Method m = null;
-        for (java.lang.reflect.Method mm : p2.getClass().getMethods()) {
-            if ("setPrvtId".equals(mm.getName()) || "setPrvtid".equalsIgnoreCase(mm.getName())) { m = mm; break; }
-        }
-        if (m != null) m.invoke(p2, prvt);
-    } catch (Exception ignore) { }
-    dbtr.setId(p2);
-    tx.setDbtr(dbtr);
 
-    // debtor agent (BIC)
-    com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3 dbtrAgt = new com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3();
-    com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice finAgt = new com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice();
-    finAgt.setBIC("DBTRAGTBIC");
-    dbtrAgt.setFinInstnId(finAgt);
-    tx.setDbtrAgt(dbtrAgt);
+        // Debtor party
+        com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 dbtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
+        dbtr.setNm("Runner Debtor Ltd");
+        tx.setDbtr(dbtr);
 
-    // creditor party
-    com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 cdtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
-    cdtr.setNm("Runner Creditor Ltd");
-    tx.setCdtr(cdtr);
+        // Debtor agent
+        com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3 dbtrAgt =
+            new com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3();
+        com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice finAgt =
+            new com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice();
+        finAgt.setBIC("DBTRAGTBIC");
+        dbtrAgt.setFinInstnId(finAgt);
+        tx.setDbtrAgt(dbtrAgt);
+
+        // Creditor party
+        com.prowidesoftware.swift.model.mx.dic.PartyIdentification8 cdtr = new com.prowidesoftware.swift.model.mx.dic.PartyIdentification8();
+        cdtr.setNm("Runner Creditor Ltd");
+        tx.setCdtr(cdtr);
+
+        // Creditor agent
+        com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3 cdtrAgt =
+            new com.prowidesoftware.swift.model.mx.dic.BranchAndFinancialInstitutionIdentification3();
+        com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice cdtrFinAgt =
+            new com.prowidesoftware.swift.model.mx.dic.FinancialInstitutionIdentification5Choice();
+        cdtrFinAgt.setBIC("CDTRAGTBIC");
+        cdtrAgt.setFinInstnId(cdtrFinAgt);
+        tx.setCdtrAgt(cdtrAgt);
+
         src.getCdtTrfTxInf().add(tx);
 
-        com.prowidesoftware.swift.model.mx.dic.Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
-
-        // Diagnostic: inspect the mapped FinInstnId for prtry-list support and contents
-        try {
-            if (mapped.getCdtTrfTxInf() != null && !mapped.getCdtTrfTxInf().isEmpty()) {
-                Object fin = null;
-                try {
-                    fin = mapped.getCdtTrfTxInf().get(0).getDbtr().getFinInstnId();
-                } catch (Exception e) { /* ignore */ }
-                    if (fin != null) {
-                        // diagnostic logging removed
-                    }
-            }
-        } catch (Exception _e) { }
-
-        JAXBContext jaxb = JAXBContext.newInstance(com.prowidesoftware.swift.model.mx.dic.Pacs00900101.class);
-        Marshaller m = jaxb.createMarshaller();
-        m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
-        StringWriter w = new StringWriter();
-    QName rootName = new QName("urn:iso:std:iso:20022:tech:xsd:pacs.009.001.01", "Document");
-        JAXBElement<com.prowidesoftware.swift.model.mx.dic.Pacs00900101> root = new JAXBElement<>(rootName, com.prowidesoftware.swift.model.mx.dic.Pacs00900101.class, mapped);
-        m.marshal(root, w);
-
-        // pretty-print and log the original marshalled XML
-        try {
-            String originalXml = w.toString();
-            String prettyOriginal = originalXml;
-            try {
-                javax.xml.parsers.DocumentBuilderFactory dbf2 = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-                dbf2.setNamespaceAware(true);
-                javax.xml.parsers.DocumentBuilder db2 = dbf2.newDocumentBuilder();
-                org.w3c.dom.Document doc2 = db2.parse(new java.io.ByteArrayInputStream(originalXml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-                javax.xml.transform.TransformerFactory tf2 = javax.xml.transform.TransformerFactory.newInstance();
-                javax.xml.transform.Transformer tr2 = tf2.newTransformer();
-                tr2.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "no");
-                tr2.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");
-                tr2.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-                try { tr2.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2"); } catch (Exception _e) { }
-                java.io.StringWriter swp = new java.io.StringWriter();
-                tr2.transform(new javax.xml.transform.dom.DOMSource(doc2), new javax.xml.transform.stream.StreamResult(swp));
-                prettyOriginal = swp.toString();
-            } catch (Exception _e) {
-                // fallback to raw
-            }
-            // logging removed: prettyOriginal omitted
-        } catch (Exception _e) { /* ignore logging errors */ }
-
-        // Post-process marshalled XML: inject additional <PrtryId> elements under Dbtr/FinInstnId
-        try {
-            String xml = w.toString();
-            javax.xml.parsers.DocumentBuilderFactory dbf = javax.xml.parsers.DocumentBuilderFactory.newInstance();
-            dbf.setNamespaceAware(true);
-            javax.xml.parsers.DocumentBuilder db = dbf.newDocumentBuilder();
-            org.w3c.dom.Document doc = db.parse(new java.io.ByteArrayInputStream(xml.getBytes(java.nio.charset.StandardCharsets.UTF_8)));
-
-            // find first CdtTrfTxInf -> Dbtr -> FinInstnId
-            org.w3c.dom.NodeList ctds = doc.getElementsByTagNameNS("*", "CdtTrfTxInf");
-            if (ctds != null && ctds.getLength() > 0) {
-                org.w3c.dom.Element ctd = (org.w3c.dom.Element) ctds.item(0);
-                org.w3c.dom.NodeList dbtrs = ctd.getElementsByTagNameNS("*", "Dbtr");
-                if (dbtrs != null && dbtrs.getLength() > 0) {
-                    org.w3c.dom.Element dbtrElem = (org.w3c.dom.Element) dbtrs.item(0);
-                    org.w3c.dom.NodeList fins = dbtrElem.getElementsByTagNameNS("*", "FinInstnId");
-                    if (fins != null && fins.getLength() > 0) {
-                        org.w3c.dom.Element finElem = (org.w3c.dom.Element) fins.item(0);
-                        String ns = "urn:iso:std:iso:20022:tech:xsd:pacs.009.001.01";
-                        // append PrtryId nodes for each private id entry in source prvt
-                        try {
-                            if (prvt != null && prvt.getOthr() != null) {
-                                for (GenericPersonIdentification2 gp : prvt.getOthr()) {
-                                    if (gp == null) continue;
-                                    String idVal = gp.getId();
-                                    String iss = null;
-                                    if (gp.getSchmeNm() != null) {
-                                        try { iss = gp.getSchmeNm().getPrtry(); } catch (Exception _e) { }
-                                        if (iss == null) try { iss = gp.getSchmeNm().getCd(); } catch (Exception _e) { }
-                                    }
-                                    if (idVal != null) {
-                                        org.w3c.dom.Element prEl = doc.createElementNS(ns, "PrtryId");
-                                        org.w3c.dom.Element idEl = doc.createElementNS(ns, "Id");
-                                        idEl.setTextContent(idVal);
-                                        prEl.appendChild(idEl);
-                                        if (iss != null) {
-                                            org.w3c.dom.Element issEl = doc.createElementNS(ns, "Issr");
-                                            issEl.setTextContent(iss);
-                                            prEl.appendChild(issEl);
-                                        }
-                                        finElem.appendChild(prEl);
-                                    }
-                                }
-                            }
-                        } catch (Exception _e) { }
-                    }
-                }
-            }
-
-            // serialize back to string and pretty-print
-            javax.xml.transform.TransformerFactory tf = javax.xml.transform.TransformerFactory.newInstance();
-            javax.xml.transform.Transformer tr = tf.newTransformer();
-            tr.setOutputProperty(javax.xml.transform.OutputKeys.OMIT_XML_DECLARATION, "no");
-            tr.setOutputProperty(javax.xml.transform.OutputKeys.ENCODING, "UTF-8");
-            tr.setOutputProperty(javax.xml.transform.OutputKeys.INDENT, "yes");
-            try { tr.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2"); } catch (Exception _e) { }
-            java.io.StringWriter sw2 = new java.io.StringWriter();
-            tr.transform(new javax.xml.transform.dom.DOMSource(doc), new javax.xml.transform.stream.StreamResult(sw2));
-            String outXml = sw2.toString();
-            // logging removed: post-processed XML omitted
-            try {
-                java.nio.file.Path outdir = java.nio.file.Paths.get("build/outputs");
-                java.nio.file.Files.createDirectories(outdir);
-                java.nio.file.Files.write(outdir.resolve("pacs009.xml"), outXml.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-                // logging removed: wrote output file
-            } catch (Exception _w) { }
-        } catch (Exception e) {
-            // fallback to original output on any error
-            // logging removed: fallback output
-        }
+        return src;
     }
 }

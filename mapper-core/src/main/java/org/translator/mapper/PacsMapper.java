@@ -1,13 +1,12 @@
 package org.translator.mapper;
 
-import com.prowidesoftware.swift.model.mx.dic.Pacs00800101;
-import com.prowidesoftware.swift.model.mx.dic.Pacs00900101;
-
 /**
- * Deprecated stub - use {@link Pacs008ToPacs009Mapper} instead.
+ * Deprecated stub - use the new orchestration framework instead.
+ * @deprecated Use {@link PaymentMessageOrchestrator} with {@link Pacs008ToPacs009PaymentMapper}
  */
+@Deprecated
 public interface PacsMapper {
-    default Pacs00900101 map(Pacs00800101 src) {
-        return Pacs008ToPacs009Mapper.INSTANCE.map(src);
+    default org.translator.xsd.generated.pacs_009.Document map(org.translator.xsd.generated.pacs_008.Document src) {
+        return Pacs008ToPacs009Mapper.INSTANCE.mapDocument(src);
     }
 }
