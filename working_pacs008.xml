@@ -1,0 +1,32 @@
+<ns2:Document xmlns:ns2="urn:iso:std:iso:20022:tech:xsd:pacs.008.001.01">
+    <GrpHdr>
+        <MsgId>ITEST-LOCAL-RUN</MsgId>
+        <CreDtTm>2025-08-15T14:05:00Z</CreDtTm>
+        <NbOfTxs>1</NbOfTxs>
+        <TtlIntrBkSttlmAmt Ccy="EUR">46290.42</TtlIntrBkSttlmAmt>
+        <IntrBkSttlmDt>2021-12-13</IntrBkSttlmDt>
+        <SttlmInf>
+            <SttlmMtd>CLRG</SttlmMtd>
+        </SttlmInf>
+        <InstgAgt>
+            <FinInstnId>
+                <BICFI>AAAABBCC</BICFI>
+            </FinInstnId>
+        </InstgAgt>
+        <InstdAgt>
+            <FinInstnId>
+                <BICFI>BBCCDDNN</BICFI>
+            </FinInstnId>
+        </InstdAgt>
+    </GrpHdr>
+    <CdtTrfTxInf>
+        <PmtId>
+            <EndToEndId>LOCAL-RUN-E2E</EndToEndId>
+        </PmtId>
+        <DbtrAcct>
+            <Id>
+                <IBAN>NL91ABNA0417164300</IBAN>
+            </Id>
+        </DbtrAcct>
+    </CdtTrfTxInf>
+</ns2:Document>
