@@ -25,6 +25,10 @@ dependencies {
     // Model dependency required for direct use of Prowide ISO20022 classes in the service
     implementation 'com.prowidesoftware:pw-iso20022:SRU2024-10.2.7'
 
+    // MapStruct dependencies (needed for compilation)
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.junit.jupiter:junit-jupiter:5.10.0'
 }

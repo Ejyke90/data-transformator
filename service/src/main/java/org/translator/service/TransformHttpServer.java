@@ -65,7 +65,7 @@ public class TransformHttpServer {
                 }
 
                 // Map to pacs.009 using existing mapper
-                Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.map(src);
+                Pacs00900101 mapped = Pacs008ToPacs009Mapper.INSTANCE.mapProwide(src);
 
                 // Marshal response
                 JAXBContext outCtx = JAXBContext.newInstance(Pacs00900101.class);
