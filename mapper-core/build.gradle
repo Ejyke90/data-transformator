@@ -1,6 +1,7 @@
 plugins {
     id 'java'
     id 'application'
+    id 'com.github.davidmc24.gradle.plugin.avro' version '1.9.1'
 }
 
 application {
@@ -10,6 +11,10 @@ application {
 dependencies {
     // ProWide SWIFT ISO 20022 library for PACS message types
     implementation 'com.prowidesoftware:pw-iso20022:SRU2023-10.1.6'
+
+    // Avro dependencies for POJO generation from canonicalBizView schema
+    implementation 'org.apache.avro:avro:1.11.3'
+    implementation 'org.apache.avro:avro-compiler:1.11.3'
 
     // JAXB dependencies for XML binding annotations
     implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.1'
@@ -87,6 +92,11 @@ task generateAllXSDClasses {
 }
 
 compileJava.dependsOn generateAllXSDClasses
+
+// Ensure Avro generation runs before compileJava
+tasks.named('compileJava') {
+    dependsOn tasks.named('generateAvroJava')
+}
 
 test {
     useJUnitPlatform()
