@@ -20,3 +20,4 @@
 
 # Generated pacs files and outputs (safe to ignore build outputs)
 /build/outputs/
+/build/generated/
